@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Cyber Mercedes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-pc-display"></i> Cyber Mercedes
+            </a>
+            <div class="text-white">
+                <i class="bi bi-person-circle"></i> {{ usuario.username }}
+                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm ms-3">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div class="alert alert-success">
+            <h4><i class="bi bi-check-circle-fill"></i> ¡Bienvenido, {{ usuario.username }}!</h4>
+            <p>Has iniciado sesión correctamente en el sistema de gestión del Cyber.</p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card text-center border-success">
+                    <div class="card-body">
+                        <i class="bi bi-display fs-1 text-success"></i>
+                        <h5 class="card-title mt-2">Estaciones</h5>
+                        <p class="card-text display-4">0</p>
+                        <p class="text-muted">PCs en el cyber</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center border-primary">
+                    <div class="card-body">
+                        <i class="bi bi-cup-straw fs-1 text-primary"></i>
+                        <h5 class="card-title mt-2">Pedidos Hoy</h5>
+                        <p class="card-text display-4">0</p>
+                        <p class="text-muted">Sublimaciones</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center border-warning">
+                    <div class="card-body">
+                        <i class="bi bi-currency-dollar fs-1 text-warning"></i>
+                        <h5 class="card-title mt-2">Ventas Hoy</h5>
+                        <p class="card-text display-4">$0</p>
+                        <p class="text-muted">Ingresos del día</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <i class="bi bi-grid-3x3-gap-fill"></i> Módulos del Sistema
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <i class="bi bi-check-circle-fill text-success"></i> Autenticación de usuarios
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-clock-history"></i> Gestión de Estaciones (Próximamente)
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-cup-straw"></i> Sublimación y Pedidos (Próximamente)
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-box-seam"></i> Inventario (Próximamente)
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-graph-up"></i> Reportes y Estadísticas (Próximamente)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-info-circle"></i> Información del Sistema
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Cyber Comunitario:</strong> Nuestra Señora de las Mercedes</p>
+                        <p><strong>Ubicación:</strong> Villa de Cura, Estado Aragua</p>
+                        <p><strong>Usuario:</strong> {{ usuario.username }}</p>
+                        <p><strong>Rol:</strong> {{ usuario.rol }}</p>
+                        <hr>
+                        <small class="text-muted">Sistema desarrollado para la gestión integral del cyber</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
