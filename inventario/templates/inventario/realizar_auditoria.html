@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Realizar Auditoría - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'lista_auditorias' %}" class="btn btn-secondary">
+            ← Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="bi bi-clipboard-check"></i> Realizando Auditoría: {{ auditoria.nombre }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <h5 class="mt-3">📦 Insumos</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Insumo</th>
+                                <th>Stock Teórico</th>
+                                <th>Cantidad Física *</th>
+                                <th>Observaciones</th>
+                            </thead>
+                        <tbody>
+                            {% for item in inventario_teorico %}
+                                {% if item.insumo %}
+                                <tr>
+                                    <td>{{ item.insumo.nombre }}</td>
+                                    <td>{{ item.cantidad_teorica }} {{ item.insumo.unidad }}</td>
+                                    <td>
+                                        <input type="number" name="cantidad_fisica_{{ item.id }}" class="form-control" 
+                                               value="{{ item.cantidad_teorica }}" required>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="obs_{{ item.id }}" class="form-control" placeholder="Ej: Rotas, en mal estado...">
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <h5 class="mt-3">🖥️ Activos Fijos</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Activo</th>
+                                <th>Estado Teórico</th>
+                                <th>Estado Físico *</th>
+                                <th>Observaciones</th>
+                            </thead>
+                        <tbody>
+                            {% for item in inventario_teorico %}
+                                {% if item.activo %}
+                                <tr>
+                                    <td>{{ item.activo.nombre }} ({{ item.activo.codigo }})</td>
+                                    <td>{{ item.activo.get_estado_display }}</td>
+                                    <td>
+                                        <select name="estado_fisico_{{ item.id }}" class="form-select" required>
+                                            <option value="operativo">✅ Operativo</option>
+                                            <option value="parcial">⚠️ Parcial</option>
+                                            <option value="dañado">🔧 Dañado</option>
+                                            <option value="obsoleto">📦 Obsoleto</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="obs_{{ item.id }}" class="form-control" placeholder="Ej: No enciende, teclas dañadas...">
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">
+                    <i class="bi bi-save"></i> Guardar Hallazgos
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

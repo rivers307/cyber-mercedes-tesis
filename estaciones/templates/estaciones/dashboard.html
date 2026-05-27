@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+
+{% block title %}Estaciones - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Botón para volver al Dashboard Principal -->
+    <div class="mb-3">
+        <a href="/dashboard/" class="btn btn-secondary">
+            ← Volver al Dashboard Principal
+        </a>
+    </div>
+
+    <!-- Mensajes de éxito/error -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Botón para agregar nueva PC -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4>Agregar Nueva PC</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'crear_estacion' %}" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-4">
+                    <label class="form-label">Número de PC</label>
+                    <input type="number" name="numero" class="form-control" placeholder="Ej: 1" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Precio por hora (Bs)</label>
+                    <input type="number" step="0.50" name="precio_hora" class="form-control" placeholder="Ej: 1.50" value="1.50" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado inicial</label>
+                    <select name="estado" class="form-select">
+                        <option value="libre">Libre</option>
+                        <option value="ocupada">Ocupada</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de PCs -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4>Estado de las Estaciones (PCs)</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>PC</th>
+                            <th>Estado</th>
+                            <th>Tiempo de Uso</th>
+                            <th>Precio/hora</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for estacion in estaciones %}
+                        <tr class="estado-fila estado-{{ estacion.estado }}">
+                            <td>{{ forloop.counter }}</td>
+                            <td><strong>PC {{ estacion.numero }}</strong></td>
+                            <td>
+                                <span class="badge {% if estacion.estado == 'libre' %}bg-success{% elif estacion.estado == 'ocupada' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {% if estacion.estado == 'libre' %}
+                                        🟢 Libre
+                                    {% elif estacion.estado == 'ocupada' %}
+                                        🔴 Ocupada
+                                    {% else %}
+                                        🟡 Mantenimiento
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if estacion.estado == 'ocupada' %}
+                                    <span class="tiempo-actual" data-id="{{ estacion.id }}" data-inicio="{{ estacion.hora_inicio|date:'U' }}" data-acumulado="{{ estacion.tiempo_acumulado }}">
+                                        Calculando...
+                                    </span>
+                                {% else %}
+                                    {{ estacion.tiempo_acumulado }} minutos
+                                {% endif %}
+                            </td>
+                            <td>Bs {{ estacion.precio_hora }} / hora</td>
+                            <td>
+                                {% if estacion.estado == 'libre' %}
+                                    <button class="btn btn-sm btn-success" onclick="abrirModalInicio({{ estacion.id }})">Iniciar Uso</button>
+                                {% elif estacion.estado == 'ocupada' %}
+                                    <button class="btn btn-sm btn-danger" onclick="finalizarUso({{ estacion.id }})">Finalizar Uso</button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-warning" onclick="marcarComoLibre({{ estacion.id }})">Marcar como Libre</button>
+                                {% endif %}
+                                
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editarModal{{ estacion.id }}">Editar</button>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ estacion.id }}">Eliminar</button>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Editar -->
+                        <div class="modal fade" id="editarModal{{ estacion.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{% url 'editar_estacion' estacion.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header bg-warning">
+                                            <h5 class="modal-title">Editar PC {{ estacion.numero }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Número de PC</label>
+                                                <input type="number" name="numero" class="form-control" value="{{ estacion.numero }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Precio por hora (Bs)</label>
+                                                <input type="number" step="0.50" name="precio_hora" class="form-control" value="{{ estacion.precio_hora }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Estado</label>
+                                                <select name="estado" class="form-select">
+                                                    <option value="libre" {% if estacion.estado == 'libre' %}selected{% endif %}>Libre</option>
+                                                    <option value="ocupada" {% if estacion.estado == 'ocupada' %}selected{% endif %}>Ocupada</option>
+                                                    <option value="mantenimiento" {% if estacion.estado == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Eliminar -->
+                        <div class="modal fade" id="eliminarModal{{ estacion.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{% url 'eliminar_estacion' estacion.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">Confirmar Eliminación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>¿Estás seguro de eliminar la PC {{ estacion.numero }}?</p>
+                                            <p class="text-danger">Esta acción no se puede deshacer.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                <div class="alert alert-warning">
+                                    No hay estaciones registradas. Agrega una usando el formulario arriba.
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .estado-libre { background-color: #d4edda; }
+    .estado-ocupada { background-color: #f8d7da; }
+    .estado-mantenimiento { background-color: #fff3cd; }
+</style>
+
+<!-- Modal inicio de uso -->
+<div class="modal fade" id="modalInicioUso" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Iniciar Uso de PC</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="inicioUsoEstacionId" />
+
+        <div class="mb-3">
+          <label class="form-label">Cliente</label>
+          <input type="text" class="form-control" id="inicioUsoCliente" placeholder="Nombre del cliente" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Tipo de cobro</label>
+          <select class="form-select" id="inicioUsoTipoCobro" onchange="toggleTiempoFijo()">
+            <option value="acumulado_horas" selected>Acumulado por horas libres</option>
+            <option value="tiempo_fijo">Tiempo fijo</option>
+          </select>
+        </div>
+
+        <div class="mb-3" id="campoDuracion" style="display:none;">
+          <label class="form-label">Duración programada (minutos)</label>
+          <input type="number" class="form-control" id="inicioUsoDuracionMin" min="1" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Método de pago</label>
+          <select class="form-select" id="inicioUsoMetodoPago">
+            <option value="efectivo" selected>Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="pago_movil">Pago móvil</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" onclick="confirmarInicioUso()">Iniciar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // Actualizar tiempos (visual)
+    function actualizarTiempos() {
+        document.querySelectorAll('.tiempo-actual').forEach(function(element) {
+            var inicio = parseInt(element.getAttribute('data-inicio'));
+            var acumulado = parseInt(element.getAttribute('data-acumulado'));
+            var ahora = Math.floor(Date.now() / 1000);
+            var minutos = acumulado + Math.floor((ahora - inicio) / 60);
+            var horas = Math.floor(minutos / 60);
+            var mins = minutos % 60;
+            element.textContent = (minutos < 60) ? (minutos + ' minutos') : (horas + 'h ' + mins + 'min');
+        });
+    }
+
+    setInterval(actualizarTiempos, 60000);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        actualizarTiempos();
+    });
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function toggleTiempoFijo() {
+        var tipo = document.getElementById('inicioUsoTipoCobro').value;
+        var campo = document.getElementById('campoDuracion');
+        campo.style.display = (tipo === 'tiempo_fijo') ? 'block' : 'none';
+    }
+
+    function abrirModalInicio(estacionId) {
+        document.getElementById('inicioUsoEstacionId').value = estacionId;
+        document.getElementById('inicioUsoTipoCobro').value = 'acumulado_horas';
+        document.getElementById('inicioUsoMetodoPago').value = 'efectivo';
+        document.getElementById('inicioUsoCliente').value = '';
+        document.getElementById('inicioUsoDuracionMin').value = '';
+        toggleTiempoFijo();
+
+        var modal = new bootstrap.Modal(document.getElementById('modalInicioUso'));
+        modal.show();
+    }
+
+    function confirmarInicioUso() {
+        var estacionId = document.getElementById('inicioUsoEstacionId').value;
+        var cliente = document.getElementById('inicioUsoCliente').value;
+        var tipoCobro = document.getElementById('inicioUsoTipoCobro').value;
+        var metodoPago = document.getElementById('inicioUsoMetodoPago').value;
+        var durMin = document.getElementById('inicioUsoDuracionMin').value;
+
+        var duracion_programada_minutos = null;
+        if (tipoCobro === 'tiempo_fijo') {
+            duracion_programada_minutos = durMin;
+        }
+
+        fetch('/api/estacion/' + estacionId + '/cambiar/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tipo_cobro: tipoCobro,
+                duracion_programada_minutos: duracion_programada_minutos,
+                metodo_pago: metodoPago,
+                cliente: cliente
+            })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al iniciar uso');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('Error de conexión');
+        });
+    }
+
+    function finalizarUso(estacionId) {
+        fetch('/api/estacion/' + estacionId + '/cambiar/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al finalizar uso');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('Error de conexión');
+        });
+    }
+
+    function marcarComoLibre(estacionId) {
+        fetch('/api/estacion/' + estacionId + '/cambiar/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al cambiar a libre');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('Error de conexión');
+        });
+    }
+
+    // Auto-cierre: cierra sesiones vencidas (tiempo_fijo) cada 10s
+    function cerrarSesionesVencidas() {
+        fetch('/api/estaciones/cerrar-vencidas/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data && data.success && data.cerradas && data.cerradas > 0) {
+                location.reload();
+            }
+        })
+        .catch(function(error) {
+            // Silencioso para no molestar al usuario
+            console.warn('Auto-cierre falló:', error);
+        });
+    }
+
+    setInterval(cerrarSesionesVencidas, 10000);
+</script>
+{% endblock %}
+

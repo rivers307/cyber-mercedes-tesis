@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'sublimacion_dashboard' %}" class="btn btn-secondary">
+            ← Volver a Sublimación
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-box"></i> Agregar Nuevo Producto</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'gestionar_productos' %}" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-3">
+                    <input type="text" name="nombre" class="form-control" placeholder="Nombre del producto" required>
+                </div>
+                <div class="col-md-2">
+                    <select name="tipo" class="form-select" required>
+                        <option value="taza">Taza</option>
+                        <option value="camisa">Camisa</option>
+                        <option value="gorra">Gorra</option>
+                        <option value="termo">Termo</option>
+                        <option value="lienzo">Lienzo</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" step="0.50" name="precio_base" class="form-control" placeholder="Precio Bs" required>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="stock" class="form-control" placeholder="Stock" value="0" required>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="stock_minimo" class="form-control" placeholder="Stock mínimo" value="5" required>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-success w-100">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4><i class="bi bi-grid"></i> Lista de Productos</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Stock Mínimo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in productos %}
+                        <tr>
+                            <td>{{ producto.id }}</td>
+                            <td>{{ producto.nombre }}</td>
+                            <td>{{ producto.get_tipo_display }}</td>
+                            <td>Bs {{ producto.precio_base }}</td>
+                            <td class="{% if producto.stock <= producto.stock_minimo %}text-danger fw-bold{% endif %}">
+                                {{ producto.stock }}
+                            </td>
+                            <td>{{ producto.stock_minimo }}</td>
+                            <td>
+                                {% if producto.stock <= producto.stock_minimo %}
+                                    <span class="badge bg-danger">⚠️ Stock Bajo</span>
+                                {% else %}
+                                    <span class="badge bg-success">✅ Normal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editarModal{{ producto.id }}">
+                                    Editar
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ producto.id }}">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Editar -->
+                        <div class="modal fade" id="editarModal{{ producto.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{% url 'editar_producto' producto.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header bg-warning">
+                                            <h5 class="modal-title">Editar Producto</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-2">
+                                                <label>Nombre</label>
+                                                <input type="text" name="nombre" class="form-control" value="{{ producto.nombre }}" required>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label>Tipo</label>
+                                                <select name="tipo" class="form-select">
+                                                    <option value="taza" {% if producto.tipo == 'taza' %}selected{% endif %}>Taza</option>
+                                                    <option value="camisa" {% if producto.tipo == 'camisa' %}selected{% endif %}>Camisa</option>
+                                                    <option value="gorra" {% if producto.tipo == 'gorra' %}selected{% endif %}>Gorra</option>
+                                                    <option value="termo" {% if producto.tipo == 'termo' %}selected{% endif %}>Termo</option>
+                                                    <option value="lienzo" {% if producto.tipo == 'lienzo' %}selected{% endif %}>Lienzo</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label>Precio Base (Bs)</label>
+                                                <input type="number" step="0.50" name="precio_base" class="form-control" value="{{ producto.precio_base }}" required>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label>Stock</label>
+                                                <input type="number" name="stock" class="form-control" value="{{ producto.stock }}" required>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label>Stock Mínimo</label>
+                                                <input type="number" name="stock_minimo" class="form-control" value="{{ producto.stock_minimo }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Eliminar -->
+                        <div class="modal fade" id="eliminarModal{{ producto.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{% url 'eliminar_producto' producto.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">Confirmar Eliminación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>¿Eliminar el producto <strong>{{ producto.nombre }}</strong>?</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No hay productos registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

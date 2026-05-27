@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Sublimación - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Botón para volver al Dashboard Principal -->
+    <div class="mb-3">
+        <a href="/dashboard/" class="btn btn-secondary">
+            ← Volver al Dashboard Principal
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-cup-straw"></i> Módulo de Sublimación</h2>
+            <p class="text-muted">Gestión de pedidos personalizados (tazas, camisas, gorras)</p>
+        </div>
+        <div class="col text-end">
+            <a href="{% url 'crear_pedido_form' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Nuevo Pedido
+            </a>
+            <a href="{% url 'gestionar_productos' %}" class="btn btn-info">
+                <i class="bi bi-box"></i> Productos
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="card text-center bg-warning text-dark">
+                <div class="card-body">
+                    <h3>{{ estadisticas.pendientes }}</h3>
+                    <small>📋 Pendientes</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h3>{{ estadisticas.diseño }}</h3>
+                    <small>🎨 En Diseño</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h3>{{ estadisticas.produccion }}</h3>
+                    <small>🖨️ Producción</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3>{{ estadisticas.listos }}</h3>
+                    <small>✅ Listos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="card text-center bg-secondary text-white">
+                <div class="card-body">
+                    <h3>{{ estadisticas.entregados }}</h3>
+                    <small>🎁 Entregados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pedidos Recientes -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-clock-history"></i> Pedidos Recientes</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos_recientes %}
+                        <tr>
+                            <td>{{ pedido.id }}</td>
+                            <td>{{ pedido.nombre_cliente }}</td>
+                            <td>{{ pedido.producto.nombre }}</td>
+                            <td>{{ pedido.cantidad }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if pedido.estado == 'pendiente' %}bg-warning
+                                    {% elif pedido.estado == 'diseño' %}bg-info
+                                    {% elif pedido.estado == 'produccion' %}bg-primary
+                                    {% elif pedido.estado == 'listo' %}bg-success
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ pedido.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>Bs {{ pedido.precio_total }}</td>
+                            <td>
+                                <a href="{% url 'detalle_pedido' pedido.id %}" class="btn btn-sm btn-outline-primary">
+                                    Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No hay pedidos registrados
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'lista_pedidos' %}" class="btn btn-outline-success">
+                    Ver Todos los Pedidos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Movimientos - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
+            ← Volver a Inventario
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4><i class="bi bi-clock-history"></i> Historial de Movimientos (Auditoría)</h4>
+        </div>
+        <div class="card-body">
+            <!-- Filtros -->
+            <form method="GET" class="row mb-3">
+                <div class="col-md-4">
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos los tipos</option>
+                        {% for key, value in tipos %}
+                        <option value="{{ key }}" {% if request.GET.tipo == key %}selected{% endif %}>
+                            {{ value }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select name="insumo" class="form-select">
+                        <option value="">Todos los insumos</option>
+                        {% for insumo in insumos %}
+                        <option value="{{ insumo.id }}" {% if request.GET.insumo == insumo.id|stringformat:"s" %}selected{% endif %}>
+                            {{ insumo.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'historial_movimientos' %}" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Insumo</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Stock Anterior</th>
+                            <th>Stock Nuevo</th>
+                            <th>Motivo</th>
+                            <th>Realizado por</th>
+                            <th>Pedido</th>
+                        </thead>
+                    <tbody>
+                        {% for mov in movimientos %}
+                        <tr>
+                            <td>{{ mov.fecha|date:"d/m/Y H:i:s" }}</td>
+                            <td>{{ mov.insumo.nombre }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if mov.tipo == 'entrada' %}bg-success
+                                    {% elif mov.tipo == 'salida' %}bg-warning
+                                    {% elif mov.tipo == 'ajuste' %}bg-secondary
+                                    {% elif mov.tipo == 'devolucion' %}bg-info
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ mov.get_tipo_display }}
+                                </span>
+                             </td>
+                            <td>{{ mov.cantidad }} {{ mov.insumo.unidad }}</td>
+                            <td>{{ mov.stock_anterior }}</td>
+                            <td>{{ mov.stock_nuevo }}</td>
+                            <td>{{ mov.motivo|default:"-" }}</td>
+                            <td>{{ mov.realizado_por.username }}</td>
+                            <td>
+                                {% if mov.pedido_relacionado %}
+                                    <a href="{% url 'detalle_pedido' mov.pedido_relacionado.id %}">
+                                        #{{ mov.pedido_relacionado.id }}
+                                    </a>
+                                {% else %}-
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No hay movimientos registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

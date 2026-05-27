@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Auditoría - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'lista_auditorias' %}" class="btn btn-secondary">
+            ← Volver a Auditorías
+        </a>
+        <button onclick="window.print()" class="btn btn-primary float-end">
+            <i class="bi bi-printer"></i> Imprimir Reporte
+        </button>
+    </div>
+
+    <!-- Encabezado del Reporte -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white text-center">
+            <h3>Cyber Comunitario "Nuestra Señora de las Mercedes"</h3>
+            <h4>Reporte de Auditoría de Inventario</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nombre:</strong> {{ auditoria.nombre }}</p>
+                    <p><strong>Tipo:</strong> {{ auditoria.get_tipo_display }}</p>
+                    <p><strong>Período:</strong> {{ auditoria.fecha_inicio|date:"d/m/Y" }} - {{ auditoria.fecha_fin|date:"d/m/Y" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Fecha Reporte:</strong> {% now "d/m/Y H:i" %}</p>
+                    <p><strong>Estado:</strong> <span class="badge bg-secondary">✅ Finalizada</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de Justificaciones -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5>📊 Resumen de Justificaciones</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for key, count in resumen_justificaciones.items %}
+                <div class="col-md-4">
+                    <div class="alert alert-secondary">
+                        <strong>{{ count }}</strong> - {{ key }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="alert alert-warning">
+                <strong>💰 Costo Total de Reposición:</strong> Bs {{ costo_total_reposicion|floatformat:2 }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle de Conciliaciones -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h5>📋 Detalle de Conciliaciones</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Item</th>
+                            <th>Tipo</th>
+                            <th>Teórico</th>
+                            <th>Físico</th>
+                            <th>Variación</th>
+                            <th>Justificación</th>
+                            <th>Costo Reposición</th>
+                        </thead>
+                    <tbody>
+                        {% for c in conciliaciones %}
+                        <tr>
+                            <td>
+                                {% if c.insumo %}
+                                    {{ c.insumo.nombre }}
+                                {% else %}
+                                    {{ c.activo.nombre }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if c.insumo %}Consumible{% else %}Activo Fijo{% endif %}
+                            </td>
+                            <td>
+                                {% if c.insumo %}
+                                    {{ c.cantidad_teorica }}
+                                {% else %}
+                                    {{ c.estado_teorico }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if c.insumo %}
+                                    {{ c.cantidad_fisica }}
+                                {% else %}
+                                    {{ c.estado_fisico }}
+                                {% endif %}
+                            </td>
+                            <td class="{% if c.variacion and c.variacion > 0 %}text-danger{% elif c.variacion and c.variacion < 0 %}text-success{% endif %}">
+                                {% if c.variacion %}
+                                    {{ c.variacion }}
+                                {% else %}
+                                    Cambio de estado
+                                {% endif %}
+                            </td>
+                            <td>{{ c.get_justificacion_display }}</td>
+                            <td>Bs {{ c.costo_reposicion|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay conciliaciones registradas</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firmas -->
+    <div class="row mt-5">
+        <div class="col-md-6 text-center">
+            <hr>
+            <p>_________________________</p>
+            <p>Responsable del Cyber</p>
+        </div>
+        <div class="col-md-6 text-center">
+            <hr>
+            <p>_________________________</p>
+            <p>Comisión de Contraloría Comunal</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .btn, .mb-3, .float-end {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}

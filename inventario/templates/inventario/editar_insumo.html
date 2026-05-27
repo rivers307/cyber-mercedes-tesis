@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Insumo - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'lista_insumos' %}" class="btn btn-secondary">
+            ← Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h4><i class="bi bi-pencil"></i> Editar Insumo</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nombre *</label>
+                        <input type="text" name="nombre" class="form-control" value="{{ insumo.nombre }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Categoría</label>
+                        <select name="categoria" class="form-select">
+                            <option value="">Seleccionar categoría</option>
+                            {% for cat in categorias %}
+                            <option value="{{ cat.id }}" {% if insumo.categoria.id == cat.id %}selected{% endif %}>
+                                {{ cat.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Unidad</label>
+                        <select name="unidad" class="form-select">
+                            <option value="unidad" {% if insumo.unidad == 'unidad' %}selected{% endif %}>Unidad</option>
+                            <option value="docena" {% if insumo.unidad == 'docena' %}selected{% endif %}>Docena</option>
+                            <option value="paquete" {% if insumo.unidad == 'paquete' %}selected{% endif %}>Paquete</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Stock Mínimo</label>
+                        <input type="number" name="stock_minimo" class="form-control" value="{{ insumo.stock_minimo }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Precio Unitario (Bs)</label>
+                        <input type="number" step="0.01" name="precio_unitario" class="form-control" value="{{ insumo.precio_unitario }}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Proveedor</label>
+                        <input type="text" name="proveedor" class="form-control" value="{{ insumo.proveedor }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ubicación</label>
+                        <input type="text" name="ubicacion" class="form-control" value="{{ insumo.ubicacion }}">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Notas</label>
+                    <textarea name="notas" class="form-control" rows="3">{{ insumo.notas }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-warning">
+                    Guardar Cambios
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

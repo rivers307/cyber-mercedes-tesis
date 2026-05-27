@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Cierre Exitoso - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card text-center">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-check-circle-fill"></i> Cierre de Caja Exitoso</h4>
+        </div>
+        <div class="card-body">
+            <i class="bi bi-cash-stack" style="font-size: 80px; color: #28a745;"></i>
+            <h3 class="mt-3">Jornada Finalizada</h3>
+            <p class="text-muted">{{ fecha|date:"d/m/Y" }}</p>
+            <hr>
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <table class="table table-bordered">
+                        <tr><th>Total Ventas</th><td>Bs {{ total_ventas|floatformat:2 }}</td></tr>
+                        <tr><th>Total Abonos</th><td>Bs {{ total_abonos|floatformat:2 }}</td></tr>
+                        <tr><th>Pendiente por Cobrar</th><td>Bs {{ total_pendiente|floatformat:2 }}</td></tr>
+                    </table>
+                </div>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">Ir al Dashboard</a>
+            <a href="{% url 'exportar_reporte' 'ventas' %}" class="btn btn-success">Exportar Reporte</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

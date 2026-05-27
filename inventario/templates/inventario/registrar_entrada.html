@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Entrada - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
+            ← Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-arrow-down"></i> Registrar Entrada de Insumos</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Insumo *</label>
+                        <select name="insumo" class="form-select" required>
+                            <option value="">Seleccionar insumo</option>
+                            {% for insumo in insumos %}
+                            <option value="{{ insumo.id }}">
+                                {{ insumo.nombre }} - Stock actual: {{ insumo.stock_actual }} {{ insumo.unidad }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Cantidad *</label>
+                        <input type="number" name="cantidad" class="form-control" placeholder="Cantidad a ingresar" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Motivo</label>
+                    <textarea name="motivo" class="form-control" rows="3" placeholder="Ej: Compra a proveedor X, Factura #123">Compra de insumos</textarea>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Información:</strong> Registrar entrada aumenta el stock del insumo seleccionado.
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Registrar Entrada
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

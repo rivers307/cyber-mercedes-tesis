@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Asistente IA - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-success text-white text-center rounded-top-4">
+                    <h4 class="mb-0"><i class="bi bi-robot"></i> Asistente Inteligente</h4>
+                    <small>Tu ayudante virtual para el cyber</small>
+                </div>
+                <div class="card-body" style="height: 450px; overflow-y: auto; background: #f8f9fa;" id="chat-area">
+                    <div class="text-center text-muted mb-4">
+                        <i class="bi bi-chat-dots fs-1"></i>
+                        <p class="mt-2">¡Hola! Soy tu asistente virtual. Pregúntame sobre:</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                            <button class="btn btn-sm btn-outline-success" onclick="preguntaRapida('ventas')">💰 Ventas del día</button>
+                            <button class="btn btn-sm btn-outline-success" onclick="preguntaRapida('stock')">📦 Stock de insumos</button>
+                            <button class="btn btn-sm btn-outline-success" onclick="preguntaRapida('pcs')">🖥️ PCs disponibles</button>
+                            <button class="btn btn-sm btn-outline-success" onclick="preguntaRapida('pedidos')">📋 Pedidos pendientes</button>
+                            <button class="btn btn-sm btn-outline-success" onclick="preguntaRapida('ayuda')">❓ Ayuda</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white rounded-bottom-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="pregunta" placeholder="Escribe tu pregunta aquí..." 
+                               onkeypress="if(event.keyCode==13) enviarPregunta()">
+                        <button class="btn btn-success" onclick="enviarPregunta()">
+                            <i class="bi bi-send"></i> Enviar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function preguntaRapida(texto) {
+    document.getElementById('pregunta').value = texto;
+    enviarPregunta();
+}
+
+function enviarPregunta() {
+    const pregunta = document.getElementById('pregunta').value;
+    if (!pregunta.trim()) return;
+    
+    const chatArea = document.getElementById('chat-area');
+    
+    // Agregar pregunta del usuario
+    chatArea.innerHTML += `
+        <div class="d-flex justify-content-end mb-3">
+            <div class="bg-primary text-white p-3 rounded-3" style="max-width: 75%; border-radius: 20px 20px 5px 20px;">
+                <small><i class="bi bi-person-circle"></i> ${escapeHtml(pregunta)}</small>
+            </div>
+        </div>
+    `;
+    
+    // Limpiar input
+    document.getElementById('pregunta').value = '';
+    chatArea.scrollTop = chatArea.scrollHeight;
+    
+    // Mostrar indicador de escritura
+    chatArea.innerHTML += `
+        <div class="d-flex justify-content-start mb-3" id="typing-indicator">
+            <div class="bg-secondary text-white p-2 rounded-3" style="border-radius: 20px 20px 20px 5px;">
+                <small><i class="bi bi-robot"></i> <span class="dots">...</span></small>
+            </div>
+        </div>
+    `;
+    chatArea.scrollTop = chatArea.scrollHeight;
+    
+    // Enviar a API
+    fetch('/asistente/api/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ pregunta: pregunta })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Remover indicador de escritura
+        document.getElementById('typing-indicator')?.remove();
+        
+        chatArea.innerHTML += `
+            <div class="d-flex justify-content-start mb-3">
+                <div class="bg-light p-3 rounded-3" style="max-width: 75%; border-radius: 20px 20px 20px 5px;">
+                    <small><i class="bi bi-robot text-success"></i> ${escapeHtml(data.respuesta)}</small>
+                </div>
+            </div>
+        `;
+        chatArea.scrollTop = chatArea.scrollHeight;
+    })
+    .catch(error => {
+        document.getElementById('typing-indicator')?.remove();
+        chatArea.innerHTML += `
+            <div class="d-flex justify-content-start mb-3">
+                <div class="bg-danger text-white p-3 rounded-3">
+                    <small><i class="bi bi-exclamation-triangle"></i> Error de conexión. Intenta de nuevo.</small>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

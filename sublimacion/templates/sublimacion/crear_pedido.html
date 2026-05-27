@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Pedido - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'sublimacion_dashboard' %}" class="btn btn-secondary">
+            ← Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-plus-circle"></i> Nuevo Pedido de Sublimación</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'crear_pedido' %}">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nombre del Cliente *</label>
+                        <input type="text" name="nombre_cliente" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" name="telefono" class="form-control" placeholder="Ej: 0412-1234567">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Producto *</label>
+                        <select name="producto" class="form-select" required>
+                            <option value="">Seleccione un producto</option>
+                            {% for producto in productos %}
+                            <option value="{{ producto.id }}">
+                                {{ producto.nombre }} - {{ producto.get_tipo_display }} (Bs {{ producto.precio_base }}) - Stock: {{ producto.stock }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Cantidad *</label>
+                        <input type="number" name="cantidad" class="form-control" value="1" min="1" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Abono Inicial (Bs)</label>
+                        <input type="number" step="0.50" name="abono" class="form-control" value="0">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Especificaciones del Diseño</label>
+                    <textarea name="especificaciones" class="form-control" rows="4" placeholder="Color, talla, diseño, texto, imagen, etc..."></textarea>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Información:</strong> El precio total se calculará automáticamente según el producto y cantidad seleccionados.
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> Guardar Pedido
+                </button>
+                <a href="{% url 'sublimacion_dashboard' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mostrar precio total al seleccionar producto y cantidad
+    
+    function actualizarPrecio() {
+        const productoSelect = document.querySelector('select[name="producto"]');
+        const cantidad = document.querySelector('input[name="cantidad"]').value;
+        const productoId = productoSelect.value;
+        
+        if (productoId) {
+            // Buscar producto seleccionado
+            fetch('/sublimacion/api/precio/?producto=' + productoId + '&cantidad=' + cantidad)
+                .then(response => response.json())
+                .then(data => {
+                    // Mostrar precio si es necesario
+                });
+        }
+    }
+    
+    document.querySelector('select[name="producto"]').addEventListener('change', actualizarPrecio);
+    document.querySelector('input[name="cantidad"]').addEventListener('input', actualizarPrecio);
+</script>
+{% endblock %}

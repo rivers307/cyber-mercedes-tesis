@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">Bienvenido, {{ user.username }}</h2>
+                    <p class="card-text">Sistema de Gestión del Cyber Comunitario "Nuestra Señora de las Mercedes"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-pc-display display-1 text-success"></i>
+                    <h3 class="mt-2">{{ total_estaciones }}</h3>
+                    <p class="text-muted">Total de PCs</p>
+                    <div class="d-flex justify-content-around mt-2">
+                        <small><span class="text-success">🟢 {{ estaciones_libres }}</span></small>
+                        <small><span class="text-danger">🔴 {{ estaciones_ocupadas }}</span></small>
+                        <small><span class="text-warning">🟡 {{ estaciones_mantenimiento }}</span></small>
+                    </div>
+                </div>
+                <a href="{% url 'dashboard_estaciones' %}" class="stretched-link"></a>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-cup-straw display-1 text-primary"></i>
+                    <h3 class="mt-2">{{ total_pedidos }}</h3>
+                    <p class="text-muted">Total de Pedidos</p>
+                    <div class="d-flex justify-content-around mt-2">
+                        <small><span class="text-warning">📋 {{ pedidos_pendientes }}</span></small>
+                        <small><span class="text-info">🎨 {{ pedidos_produccion }}</span></small>
+                        <small><span class="text-success">✅ {{ pedidos_listos }}</span></small>
+                    </div>
+                </div>
+                <a href="{% url 'sublimacion_dashboard' %}" class="stretched-link"></a>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-currency-dollar display-1 text-warning"></i>
+                    <h3 class="mt-2">Bs {{ ingresos_hoy|floatformat:2 }}</h3>
+                    <p class="text-muted">Ventas Hoy</p>
+                    <small class="text-muted">Mes: Bs {{ ingresos_mes|floatformat:2 }}</small>
+                </div>
+                <a href="{% url 'cierre_caja' %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Acceso a Módulos -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4 class="mb-3"><i class="bi bi-grid"></i> Módulos del Sistema</h4>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-display fs-1 text-success"></i>
+                    <h5 class="mt-2">Estaciones</h5>
+                    <p class="small text-muted">Control de PCs del cyber</p>
+                    <a href="{% url 'dashboard_estaciones' %}" class="btn btn-sm btn-success">Acceder</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-cup-straw fs-1 text-primary"></i>
+                    <h5 class="mt-2">Sublimación</h5>
+                    <p class="small text-muted">Pedidos y diseños</p>
+                    <a href="{% url 'sublimacion_dashboard' %}" class="btn btn-sm btn-primary">Acceder</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-box-seam fs-1 text-warning"></i>
+                    <h5 class="mt-2">Inventario</h5>
+                    <p class="small text-muted">Insumos y auditorías</p>
+                    <a href="{% url 'dashboard_inventario' %}" class="btn btn-sm btn-warning">Acceder</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <i class="bi bi-graph-up fs-1 text-info"></i>
+                    <h5 class="mt-2">Reportes</h5>
+                    <p class="small text-muted">Estadísticas y cierres</p>
+                    <a href="{% url 'reporte_ventas' %}" class="btn btn-sm btn-info">Acceder</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

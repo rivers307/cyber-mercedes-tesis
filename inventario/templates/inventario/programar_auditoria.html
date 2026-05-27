@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Programar Auditoría - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'lista_auditorias' %}" class="btn btn-secondary">
+            ← Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-calendar-plus"></i> Programar Nueva Auditoría</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nombre de la Auditoría *</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Auditoría Trimestral Abril 2025" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tipo *</label>
+                        <select name="tipo" class="form-select" required>
+                            <option value="mensual">📅 Mensual</option>
+                            <option value="trimestral">📅 Trimestral</option>
+                            <option value="semestral">📅 Semestral</option>
+                            <option value="anual">📅 Anual</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha de Inicio *</label>
+                        <input type="date" name="fecha_inicio" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha de Fin *</label>
+                        <input type="date" name="fecha_fin" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>📋 Información:</strong> Al programar la auditoría, el sistema generará automáticamente el inventario teórico basado en los registros actuales.
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Programar Auditoría
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

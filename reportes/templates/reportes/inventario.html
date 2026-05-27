@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Inventario - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Volver al Dashboard</a>
+        <a href="{% url 'exportar_reporte' 'inventario' %}" class="btn btn-success float-end">
+            <i class="bi bi-download"></i> Exportar CSV
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h4><i class="bi bi-box-seam"></i> Reporte de Inventario</h4>
+        </div>
+        <div class="card-body">
+            <!-- Tarjetas de resumen -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body">
+                            <h3 id="total-insumos">0</h3>
+                            <small>Total Insumos</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center bg-danger text-white">
+                        <div class="card-body">
+                            <h3 id="stock-bajo">0</h3>
+                            <small>⚠️ Stock Bajo</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <h3 id="valor-total">Bs 0</h3>
+                            <small>💰 Valor Total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Insumos -->
+            <h5 class="mt-4">📦 Lista de Insumos</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="tablaInsumos">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Stock Actual</th>
+                            <th>Stock Mínimo</th>
+                            <th>Precio</th>
+                            <th>Valor Total</th>
+                        </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" class="text-center">Cargando datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Últimos Movimientos -->
+            <h5 class="mt-4">🔄 Últimos Movimientos de Inventario</h5>
+            <div class="table-responsive">
+                <table class="table table-sm" id="tablaMovimientos">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Insumo</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                        </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="text-center">Cargando datos...</td>
+                        </tr>
+                    </tbody>
+                </td>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Cargar estadísticas de inventario
+fetch('/api/inventario-stats/')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('total-insumos').textContent = data.total_insumos;
+        document.getElementById('stock-bajo').textContent = data.stock_bajo;
+        document.getElementById('valor-total').innerHTML = `Bs ${data.total_valor.toFixed(2)}`;
+        
+        // Cargar insumos
+        const tbody = document.getElementById('tablaInsumos').querySelector('tbody');
+        tbody.innerHTML = '';
+        
+        fetch('/inventario/insumos/')
+            .then(response => response.text())
+            .then(html => {
+                // Extraer datos de la tabla existente
+                console.log('Datos cargados');
+            });
+    });
+
+// Cargar movimientos
+fetch('/api/inventario-stats/')
+    .then(response => response.json())
+    .then(data => {
+        const tbodyMov = document.getElementById('tablaMovimientos').querySelector('tbody');
+        tbodyMov.innerHTML = '';
+        
+        if (data.movimientos && data.movimientos.length > 0) {
+            data.movimientos.slice(0, 15).forEach(m => {
+                const row = `<tr>
+                    <td>${m.fecha}</td>
+                    <td>${m.insumo}</td>
+                    <td>${m.tipo}</td>
+                    <td>${m.cantidad}</td>
+                </tr>`;
+                tbodyMov.innerHTML += row;
+            });
+        } else {
+            tbodyMov.innerHTML = '<tr><td colspan="4" class="text-center">No hay movimientos registrados</td></tr>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const tbodyMov = document.getElementById('tablaMovimientos').querySelector('tbody');
+        tbodyMov.innerHTML = '<tr><td colspan="4" class="text-center">Error al cargar datos</td></tr>';
+    });
+</script>
+{% endblock %}

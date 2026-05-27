@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Categoría - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-tag"></i> Nueva Categoría de Insumos</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{% url 'crear_categoria' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Nombre de la Categoría *</label>
+                    <input type="text" name="nombre" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Descripción</label>
+                    <textarea name="descripcion" class="form-control" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Guardar Categoría</button>
+                <a href="{% url 'lista_insumos' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

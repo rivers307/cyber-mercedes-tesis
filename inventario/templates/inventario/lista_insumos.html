@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Insumos - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
+            ← Volver a Inventario
+        </a>
+        <a href="{% url 'crear_insumo' %}" class="btn btn-success float-end">
+            <i class="bi bi-plus-circle"></i> Nuevo Insumo
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-box"></i> Lista de Insumos</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Stock</th>
+                            <th>Mínimo</th>
+                            <th>Precio</th>
+                            <th>Ubicación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for insumo in insumos %}
+                        <tr class="{% if insumo.stock_actual <= insumo.stock_minimo %}table-warning{% endif %}">
+                            <td>{{ insumo.codigo }}</td>
+                            <td>{{ insumo.nombre }}</td>
+                            <td>{{ insumo.categoria.nombre|default:"-" }}</td>
+                            <td class="{% if insumo.stock_actual == 0 %}text-danger fw-bold{% endif %}">
+                                {{ insumo.stock_actual }} {{ insumo.unidad }}
+                            </td>
+                            <td>{{ insumo.stock_minimo }} {{ insumo.unidad }}</td>
+                            <td>Bs {{ insumo.precio_unitario }}</td>
+                            <td>{{ insumo.ubicacion|default:"-" }}</td>
+                            <td>
+                                {% if insumo.stock_actual == 0 %}
+                                    <span class="badge bg-danger">Sin Stock</span>
+                                {% elif insumo.stock_actual <= insumo.stock_minimo %}
+                                    <span class="badge bg-warning">Stock Bajo</span>
+                                {% else %}
+                                    <span class="badge bg-success">Normal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'editar_insumo' insumo.id %}" class="btn btn-warning btn-sm">
+                                    Editar
+                                </a>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminarModal{{ insumo.id }}">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                        <div class="mb-3">
+                                <a href="{% url 'crear_categoria' %}" class="btn btn-info btn-sm">
+                            <i class="bi bi-plus-circle"></i> Nueva Categoría
+                        </a>
+                        </div>
+
+                        <!-- Modal Eliminar -->
+                        <div class="modal fade" id="eliminarModal{{ insumo.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form method="POST" action="{% url 'eliminar_insumo' insumo.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">Confirmar Eliminación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>¿Eliminar el insumo <strong>{{ insumo.nombre }}</strong>?</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No hay insumos registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Activos Fijos - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
+            ← Volver a Inventario
+        </a>
+    </div>
+
+    <!-- Tarjetas de Estadísticas de Operatividad -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h2>{{ operativos }}</h2>
+                    <small>✅ Operativos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-dark">
+                <div class="card-body">
+                    <h2>{{ parciales }}</h2>
+                    <small>⚠️ Parciales</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h2>{{ danados }}</h2>
+                    <small>🔧 Dañados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h2>{{ porcentaje_operatividad|floatformat:1 }}%</h2>
+                    <small>📊 Operatividad</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario para agregar activo -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-plus-circle"></i> Registrar Nuevo Activo</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-3">
+                    <input type="text" name="codigo" class="form-control" placeholder="Código (ej: PC-001)" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="nombre" class="form-control" placeholder="Nombre" required>
+                </div>
+                <div class="col-md-2">
+                    <select name="tipo" class="form-select" required>
+                        <option value="computadora">Computadora</option>
+                        <option value="monitor">Monitor</option>
+                        <option value="teclado">Teclado</option>
+                        <option value="mouse">Mouse</option>
+                        <option value="router">Router</option>
+                        <option value="impresora">Impresora</option>
+                        <option value="mobiliario">Mobiliario</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="estado" class="form-select" required>
+                        <option value="operativo">✅ Operativo</option>
+                        <option value="parcial">⚠️ Parcial</option>
+                        <option value="dañado">🔧 Dañado</option>
+                        <option value="obsoleto">📦 Obsoleto</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" name="ubicacion" class="form-control" placeholder="Ubicación" required>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success">Guardar Activo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Activos -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4><i class="bi bi-pc-display"></i> Lista de Activos Fijos</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Ubicación</th>
+                            <th>Marca/Modelo</th>
+                            <th>Valor</th>
+                        </thead>
+                    <tbody>
+                        {% for activo in activos %}
+                        <tr class="{% if activo.estado == 'dañado' %}table-danger{% elif activo.estado == 'obsoleto' %}table-secondary{% endif %}">
+                            <td>{{ activo.codigo }}</td>
+                            <td>{{ activo.nombre }}</td>
+                            <td>{{ activo.get_tipo_display }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if activo.estado == 'operativo' %}bg-success
+                                    {% elif activo.estado == 'parcial' %}bg-warning
+                                    {% elif activo.estado == 'dañado' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ activo.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>{{ activo.ubicacion }}</td>
+                            <td>{{ activo.marca }} {{ activo.modelo }}</td>
+                            <td>Bs {{ activo.valor_inicial }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay activos registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

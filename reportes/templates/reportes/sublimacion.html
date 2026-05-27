@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Sublimación - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Volver</a>
+        <a href="{% url 'exportar_reporte' 'pedidos' %}" class="btn btn-success float-end">
+            <i class="bi bi-download"></i> Exportar CSV
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="bi bi-cup-straw"></i> Reporte de Sublimación</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="estadosChart" height="250"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="productosChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <hr>
+
+            <h5 class="mt-4">Resumen de Pedidos</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                            <th>Abono</th>
+                            <th>Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPedidos"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('/api/sublimacion-stats/')
+    .then(response => response.json())
+    .then(data => {
+        new Chart(document.getElementById('estadosChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data.estados),
+                datasets: [{
+                    data: Object.values(data.estados),
+                    backgroundColor: ['#ffc107', '#17a2b8', '#007bff', '#28a745', '#6c757d']
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('productosChart'), {
+            type: 'bar',
+            data: {
+                labels: data.productos.slice(0,5).map(p => p.nombre),
+                datasets: [{
+                    label: 'Unidades Vendidas',
+                    data: data.productos.slice(0,5).map(p => p.total),
+                    backgroundColor: '#2c5f2d'
+                }]
+            }
+        });
+    });
+
+// Cargar pedidos
+fetch('http://localhost:8000/api/pedidos/')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.getElementById('tablaPedidos');
+        data.pedidos.forEach(p => {
+            const row = `<tr>
+                <td>${p.id}</td>
+                <td>${p.nombre_cliente}</td>
+                <td>${p.producto_nombre}</td>
+                <td>${p.estado_display}</td>
+                <td>Bs ${p.precio_total}</td>
+                <td>Bs ${p.abono}</td>
+                <td>Bs ${p.saldo}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    });
+</script>
+{% endblock %}

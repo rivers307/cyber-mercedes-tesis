@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Auditorías - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
+            ← Volver
+        </a>
+        <a href="{% url 'programar_auditoria' %}" class="btn btn-success float-end">
+            <i class="bi bi-plus-circle"></i> Programar Auditoría
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4><i class="bi bi-calendar-check"></i> Auditorías Programadas</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        {% for auditoria in auditorias %}
+                        <tr>
+                            <td>{{ auditoria.nombre }}</td>
+                            <td>{{ auditoria.get_tipo_display }}</td>
+                            <td>{{ auditoria.fecha_inicio|date:"d/m/Y" }}</td>
+                            <td>{{ auditoria.fecha_fin|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if auditoria.activa %}
+                                    <span class="badge bg-success">🟢 Activa</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">✅ Finalizada</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if auditoria.activa %}
+                                    <a href="{% url 'realizar_auditoria' auditoria.id %}" class="btn btn-primary btn-sm">
+                                        Realizar Auditoría
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'reporte_auditoria' auditoria.id %}" class="btn btn-info btn-sm">
+                                        Ver Reporte
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay auditorías programadas</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Salida - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
+            ← Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h4><i class="bi bi-arrow-up"></i> Registrar Salida de Insumos</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Insumo *</label>
+                        <select name="insumo" class="form-select" required>
+                            <option value="">Seleccionar insumo</option>
+                            {% for insumo in insumos %}
+                            <option value="{{ insumo.id }}">
+                                {{ insumo.nombre }} - Stock: {{ insumo.stock_actual }} {{ insumo.unidad }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Cantidad *</label>
+                        <input type="number" name="cantidad" class="form-control" placeholder="Cantidad a retirar" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Pedido relacionado (opcional)</label>
+                        <select name="pedido_relacionado" class="form-select">
+                            <option value="">Ninguno</option>
+                            {% for pedido in pedidos %}
+                            <option value="{{ pedido.id }}">
+                                Pedido #{{ pedido.id }} - {{ pedido.nombre_cliente }} - {{ pedido.producto.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Motivo</label>
+                        <input type="text" name="motivo" class="form-control" value="Uso en producción">
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Advertencia:</strong> Registrar salida disminuye el stock del insumo. Verifica que haya suficiente stock.
+                </div>
+
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-check-circle"></i> Registrar Salida
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

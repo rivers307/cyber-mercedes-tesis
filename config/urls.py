@@ -20,7 +20,11 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('login')),
+    path('', lambda request: redirect('dashboard')),  # Redirige a dashboard
     path('', include('usuarios.urls')),
-    path('', include('reportes.urls')),
+    path('', include('reportes.urls')),  # Aquí está la URL /dashboard/
+    path('', include('estaciones.urls')),
+    path('', include('sublimacion.urls')),
+    path('', include('inventario.urls')),
+    path('', include('asistente.urls')),
 ]

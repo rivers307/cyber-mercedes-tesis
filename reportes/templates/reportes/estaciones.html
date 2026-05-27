@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Estaciones - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Volver</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4><i class="bi bi-pc-display"></i> Reporte de Estaciones</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="estadosChart" height="250"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="horasPicoChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <hr>
+
+            <h5 class="mt-4">Resumen de Uso</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="tablaEstaciones">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>PC</th>
+                            <th>Estado</th>
+                            <th>Precio/hora</th>
+                            <th>Último Uso</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('/api/estaciones-stats/')
+    .then(response => response.json())
+    .then(data => {
+        new Chart(document.getElementById('estadosChart'), {
+            type: 'pie',
+            data: {
+                labels: ['Libres', 'Ocupadas', 'Mantenimiento'],
+                datasets: [{
+                    data: [data.libres, data.ocupadas, data.mantenimiento],
+                    backgroundColor: ['#28a745', '#dc3545', '#ffc107']
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('horasPicoChart'), {
+            type: 'line',
+            data: {
+                labels: data.horas_pico.map(h => h.hora),
+                datasets: [{
+                    label: 'Nivel de Uso',
+                    data: data.horas_pico.map(h => h.uso),
+                    borderColor: '#2c5f2d',
+                    fill: false
+                }]
+            }
+        });
+    });
+
+// Cargar tabla de estaciones
+fetch('http://localhost:8000/api/estaciones/')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.querySelector('#tablaEstaciones tbody');
+        tbody.innerHTML = '';
+        data.estaciones.forEach(e => {
+            const row = `<tr>
+                <td>PC ${e.numero}</td>
+                <td>${e.estado}</td>
+                <td>Bs ${e.precio_hora}</td>
+                <td>${e.ultimo_uso || 'Nunca'}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Botón para volver al Dashboard Principal -->
+    <div class="mb-3">
+        <a href="/dashboard/" class="btn btn-secondary">
+            ← Volver al Dashboard Principal
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="bi bi-box-seam"></i> Módulo de Inventario</h2>
+            <p class="text-muted">Control de insumos, materiales y auditoría de movimientos</p>
+        </div>
+        <div class="col text-end">
+            <a href="{% url 'lista_insumos' %}" class="btn btn-success">
+                <i class="bi bi-grid"></i> Ver Insumos
+            </a>
+            <a href="{% url 'historial_movimientos' %}" class="btn btn-info">
+                <i class="bi bi-clock-history"></i> Auditoría
+            </a>
+            <a href="{% url 'gestion_activos' %}" class="btn btn-primary">
+                <i class="bi bi-pc-display"></i> Activos Fijos
+            </a>
+            <a href="{% url 'lista_auditorias' %}" class="btn btn-danger">
+                <i class="bi bi-calendar-check"></i> Auditorías
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas de Insumos -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h3>{{ total_insumos }}</h3>
+                    <small>📦 Total Insumos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-warning text-dark">
+                <div class="card-body">
+                    <h3>{{ stock_bajo }}</h3>
+                    <small>⚠️ Stock Bajo</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h3>{{ sin_stock }}</h3>
+                    <small>❌ Sin Stock</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3>Bs {{ valor_total|floatformat:2 }}</h3>
+                    <small>💰 Valor Total</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas de Activos Fijos -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h3>{{ total_activos }}</h3>
+                    <small>🖥️ Total Activos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3>{{ activos_operativos }}</h3>
+                    <small>✅ Operativos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h3>{{ activos_danados }}</h3>
+                    <small>🔧 Dañados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Operatividad -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5><i class="bi bi-graph-up"></i> Estado de Operatividad</h5>
+        </div>
+        <div class="card-body">
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                    style="width: {{ porcentaje_operatividad }}%;" 
+                    aria-valuenow="{{ porcentaje_operatividad }}" 
+                    aria-valuemin="0" aria-valuemax="100">
+                    {{ porcentaje_operatividad|floatformat:1 }}% Operativo
+                </div>
+            </div>
+            <p class="text-muted mt-2">
+                <small>Auditorías activas: {{ auditorias_activas }}</small>
+            </p>
+        </div>
+    </div>
+
+    <!-- Alertas de Stock -->
+    {% if alertas %}
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h4><i class="bi bi-exclamation-triangle"></i> Alertas de Stock Bajo</h4>
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for alerta in alertas %}
+                <div class="list-group-item list-group-item-warning" id="alerta-{{ alerta.id }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ alerta.insumo.nombre }}</strong><br>
+                            <small>Stock actual: {{ alerta.stock_actual }} | Mínimo: {{ alerta.stock_minimo }}</small>
+                        </div>
+                        <button class="btn btn-sm btn-success" onclick="marcarLeida({{ alerta.id }})">
+                            <i class="bi bi-check"></i> Marcar como leída
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Acciones Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="bi bi-plus-circle"></i> Acciones Rápidas - Insumos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'crear_insumo' %}" class="btn btn-outline-success">
+                            <i class="bi bi-plus"></i> Nuevo Insumo
+                        </a>
+                        <a href="{% url 'registrar_entrada' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-down"></i> Registrar Entrada (Compra)
+                        </a>
+                        <a href="{% url 'registrar_salida' %}" class="btn btn-outline-warning">
+                            <i class="bi bi-arrow-up"></i> Registrar Salida (Uso)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="bi bi-clock-history"></i> Últimos Movimientos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for mov in ultimos_movimientos|slice:":5" %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ mov.insumo.nombre }}</span>
+                                <span class="badge 
+                                    {% if mov.tipo == 'entrada' %}bg-success
+                                    {% elif mov.tipo == 'salida' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ mov.get_tipo_display }}
+                                </span>
+                            </div>
+                            <small>{{ mov.cantidad }} {{ mov.insumo.unidad }} - {{ mov.fecha|date:"d/m/Y H:i" }}</small>
+                            <br>
+                            <small class="text-muted">Por: {{ mov.realizado_por.username }}</small>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item">
+                            <p class="text-muted mb-0">Sin movimientos registrados</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-2">
+                        <a href="{% url 'historial_movimientos' %}" class="btn btn-sm btn-link">Ver todos →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auditorías Pendientes -->
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h5><i class="bi bi-calendar-check"></i> Auditorías Activas</h5>
+        </div>
+        <div class="card-body">
+            {% if auditorias_activas > 0 %}
+                <div class="alert alert-warning">
+                    <strong>⚠️ Hay {{ auditorias_activas }} auditoría(s) activa(s) pendientes de realizar.</strong>
+                    <br>
+                    <a href="{% url 'lista_auditorias' %}" class="btn btn-sm btn-warning mt-2">
+                        Ir a Auditorías Pendientes
+                    </a>
+                </div>
+            {% else %}
+                <div class="alert alert-success">
+                    <strong>✅ No hay auditorías pendientes.</strong>
+                    <br>
+                    <a href="{% url 'programar_auditoria' %}" class="btn btn-sm btn-success mt-2">
+                        Programar Nueva Auditoría
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function marcarLeida(id) {
+    fetch(`/inventario/alerta/${id}/leer/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`alerta-${id}`).style.display = 'none';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

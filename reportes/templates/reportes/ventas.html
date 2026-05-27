@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Ventas - Cyber Mercedes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Volver</a>
+        <a href="{% url 'exportar_reporte' 'ventas' %}" class="btn btn-success float-end">
+            <i class="bi bi-download"></i> Exportar CSV
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-currency-dollar"></i> Reporte de Ventas</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label>Período</label>
+                    <select id="periodo" class="form-select">
+                        <option value="diario">Últimos 7 días</option>
+                        <option value="semanal">Últimas 12 semanas</option>
+                        <option value="mensual">Últimos 6 meses</option>
+                    </select>
+                </div>
+            </div>
+
+            <canvas id="ventasChart" height="300"></canvas>
+
+            <hr>
+
+            <h5 class="mt-4">Resumen de Ventas</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="alert alert-info">Ventas Hoy: <strong>Bs {{ ingresos_hoy|floatformat:2 }}</strong></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="alert alert-primary">Ventas Semana: <strong>Bs {{ ingresos_semana|floatformat:2 }}</strong></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="alert alert-success">Ventas Mes: <strong>Bs {{ ingresos_mes|floatformat:2 }}</strong></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="alert alert-warning">Abonos Pendientes: <strong>Bs {{ abonos_pendientes|floatformat:2 }}</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let chart;
+
+function cargarReporte() {
+    const periodo = document.getElementById('periodo').value;
+    fetch(`/api/ventas-data/?periodo=${periodo}`)
+        .then(response => response.json())
+        .then(data => {
+            if (chart) chart.destroy();
+            chart = new Chart(document.getElementById('ventasChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.ventas.map(v => v.fecha || v),
+                    datasets: [{
+                        label: 'Ventas (Bs)',
+                        data: data.ventas.map(v => v.total || v),
+                        backgroundColor: '#2c5f2d'
+                    }]
+                },
+                options: { responsive: true }
+            });
+        });
+}
+
+document.getElementById('periodo').addEventListener('change', cargarReporte);
+cargarReporte();
+</script>
+{% endblock %}
