@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Venta - Cyber Comunal Mercedes{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8 max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'reporte_ventas' %}" class="hover:text-primary transition-colors">Reporte de Ventas</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Registrar Venta</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Registrar Venta</h2>
+            <p class="text-on-surface-variant mt-1">Selecciona los insumos, cantidad y registra el pago</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'reporte_ventas' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver a Ventas
+            </a>
+        </div>
+    </div>
+
+    <!-- Mostrar mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="p-4 rounded-xl {% if message.tags == 'success' %}bg-green-500/20 border border-green-500/30 text-green-400{% elif message.tags == 'error' %}bg-red-500/20 border border-red-500/30 text-red-400{% else %}bg-amber-500/20 border border-amber-500/30 text-amber-400{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Formulario de venta -->
+    <div class="glass-card rounded-2xl p-8">
+        <!-- ✅ CORREGIDO: action apunta a 'procesar_venta' -->
+        <form id="formVenta" method="POST" action="{% url 'procesar_venta' %}">
+            {% csrf_token %}
+            
+            <!-- Lista de items -->
+            <div class="mb-4">
+                <h3 class="text-white font-bold text-lg mb-4">Productos</h3>
+                <div id="itemsContainer" class="space-y-4">
+                    <!-- Las filas se generarán con JavaScript -->
+                </div>
+                
+                <button type="button" id="addItemBtn" class="mt-3 text-primary hover:text-primary-light text-sm flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">add_circle</span> Agregar otro insumo
+                </button>
+            </div>
+
+            <!-- Totales -->
+            <div class="bg-white/5 rounded-xl p-4 mt-6 space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/60">Subtotal (USD):</span>
+                    <span class="font-bold text-white" id="totalUsd">$0.00</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/60">Subtotal (Bs):</span>
+                    <span class="font-bold text-primary text-lg" id="totalBs">Bs 0.00</span>
+                </div>
+            </div>
+
+            <!-- Método de pago y cliente -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div>
+                    <label class="block text-white/60 text-xs font-medium">Método de Pago *</label>
+                    <select name="metodo_pago" class="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-sm" required>
+                        <option value="efectivo">💵 Efectivo</option>
+                        <option value="transferencia">🏦 Transferencia</option>
+                        <option value="pago_movil">📱 Pago Móvil</option>
+                        <option value="tarjeta">💳 Tarjeta</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-white/60 text-xs font-medium">Cliente (opcional)</label>
+                    <input type="text" name="cliente_nombre" class="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-sm" placeholder="Nombre">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label class="block text-white/60 text-xs font-medium">Descripción (opcional)</label>
+                <input type="text" name="descripcion" class="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-sm" placeholder="Detalle adicional...">
+            </div>
+
+            <div class="flex gap-3 mt-8">
+                <button type="submit" id="btnRegistrar" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl text-sm font-black shadow-lg shadow-green-500/30 hover:opacity-90 transition-all">
+                    Registrar Venta
+                </button>
+                <a href="{% url 'reporte_ventas' %}" class="flex-1 py-3 bg-white/5 border border-white/10 text-white/60 rounded-xl text-sm font-black hover:bg-white/10 transition-all text-center">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ===== JAVASCRIPT ===== -->
+<!-- ============================================================ -->
+<script>
+    // Datos de insumos desde el backend
+    const insumos = {{ insumos|safe }};
+
+    // ========== GENERAR FILA DE INSUMO ==========
+    function generarFila() {
+        let options = '<option value="">Seleccionar...</option>';
+        insumos.forEach(item => {
+            options += `<option value="${item.id}" data-precio-usd="${item.precio_usd}" data-precio-bs="${item.precio_bs}" data-stock="${item.stock}">${item.nombre} (Stock: ${item.stock})</option>`;
+        });
+
+        return `
+        <div class="item-row grid grid-cols-12 gap-2 items-end">
+            <div class="col-span-4">
+                <label class="block text-white/60 text-xs font-medium">Insumo *</label>
+                <select class="insumo-select w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-sm">
+                    ${options}
+                </select>
+            </div>
+            <div class="col-span-2">
+                <label class="block text-white/60 text-xs font-medium">Cant.</label>
+                <input type="number" class="cantidad-input w-full px-2 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-sm" value="1" min="1">
+            </div>
+            <div class="col-span-2">
+                <label class="block text-white/60 text-xs font-medium">Precio USD</label>
+                <input type="text" class="precio-usd w-full px-2 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-sm" readonly>
+            </div>
+            <div class="col-span-2">
+                <label class="block text-white/60 text-xs font-medium">Precio Bs</label>
+                <input type="text" class="precio-bs w-full px-2 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-sm" readonly>
+            </div>
+            <div class="col-span-1">
+                <label class="block text-white/60 text-xs font-medium">Subtotal</label>
+                <span class="subtotal-display block text-white font-bold text-sm">Bs 0.00</span>
+            </div>
+            <div class="col-span-1 text-right">
+                <button type="button" class="remove-item text-red-400 hover:text-red-600 text-xs">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            </div>
+        </div>
+        `;
+    }
+
+    // ========== ASIGNAR EVENTOS A UNA FILA ==========
+    function asignarEventosFila(row) {
+        const select = row.querySelector('.insumo-select');
+        const cantidad = row.querySelector('.cantidad-input');
+        const precioUsd = row.querySelector('.precio-usd');
+        const precioBs = row.querySelector('.precio-bs');
+        const subtotal = row.querySelector('.subtotal-display');
+        const removeBtn = row.querySelector('.remove-item');
+
+        select.addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            if (option && option.value) {
+                precioUsd.value = option.dataset.precioUsd || '0.00';
+                precioBs.value = option.dataset.precioBs || '0.00';
+                const stock = parseInt(option.dataset.stock) || 0;
+                if (stock > 0) {
+                    cantidad.max = stock;
+                    cantidad.placeholder = `Máx: ${stock}`;
+                }
+                actualizarFila(row);
+            } else {
+                precioUsd.value = '';
+                precioBs.value = '';
+                subtotal.textContent = 'Bs 0.00';
+                actualizarTotales();
+            }
+        });
+
+        cantidad.addEventListener('input', function() {
+            actualizarFila(row);
+        });
+
+        removeBtn.addEventListener('click', function() {
+            const container = document.getElementById('itemsContainer');
+            if (container.querySelectorAll('.item-row').length > 1) {
+                row.remove();
+                actualizarTotales();
+            } else {
+                alert('Debe haber al menos un ítem en la venta.');
+            }
+        });
+    }
+
+    // ========== ACTUALIZAR UNA FILA ==========
+    function actualizarFila(row) {
+        const cantidad = parseInt(row.querySelector('.cantidad-input').value) || 1;
+        const precioBs = parseFloat(row.querySelector('.precio-bs').value) || 0;
+        const subtotal = row.querySelector('.subtotal-display');
+        subtotal.textContent = `Bs ${(cantidad * precioBs).toFixed(2)}`;
+        actualizarTotales();
+    }
+
+    // ========== ACTUALIZAR TOTALES GLOBALES ==========
+    function actualizarTotales() {
+        const rows = document.querySelectorAll('.item-row');
+        let totalBs = 0, totalUsd = 0;
+        rows.forEach(row => {
+            const cantidad = parseInt(row.querySelector('.cantidad-input').value) || 1;
+            const precioUsd = parseFloat(row.querySelector('.precio-usd').value) || 0;
+            const precioBs = parseFloat(row.querySelector('.precio-bs').value) || 0;
+            totalUsd += precioUsd * cantidad;
+            totalBs += precioBs * cantidad;
+        });
+        document.getElementById('totalUsd').textContent = `$${totalUsd.toFixed(2)}`;
+        document.getElementById('totalBs').textContent = `Bs ${totalBs.toFixed(2)}`;
+    }
+
+    // ========== AGREGAR NUEVA FILA ==========
+    document.getElementById('addItemBtn').addEventListener('click', function() {
+        const container = document.getElementById('itemsContainer');
+        const newRowHTML = generarFila();
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newRowHTML;
+        const newRow = tempDiv.firstElementChild;
+        container.appendChild(newRow);
+        asignarEventosFila(newRow);
+        actualizarTotales();
+    });
+
+    // ========== INICIALIZAR LA PRIMERA FILA ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('itemsContainer');
+        container.innerHTML = generarFila();
+        const firstRow = container.querySelector('.item-row');
+        asignarEventosFila(firstRow);
+        actualizarTotales();
+    });
+
+    // ========== ENVIAR FORMULARIO ==========
+    document.getElementById('formVenta').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const rows = document.querySelectorAll('.item-row');
+        const items = [];
+        let allValid = true;
+
+        rows.forEach(row => {
+            const select = row.querySelector('.insumo-select');
+            const cantidad = parseInt(row.querySelector('.cantidad-input').value) || 0;
+            const precioUsd = parseFloat(row.querySelector('.precio-usd').value) || 0;
+            if (select.value && cantidad > 0 && precioUsd > 0) {
+                items.push({
+                    insumo_id: select.value,
+                    cantidad: cantidad,
+                    precio_usd: precioUsd
+                });
+            } else {
+                allValid = false;
+            }
+        });
+
+        if (!allValid || items.length === 0) {
+            alert('❌ Debe seleccionar al menos un insumo con cantidad y precio válido.');
+            return;
+        }
+
+        // Deshabilitar botón para evitar doble envío
+        const btn = document.getElementById('btnRegistrar');
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+
+        const formData = new FormData(this);
+        formData.delete('items');
+        formData.append('items', JSON.stringify(items));
+
+        fetch(this.action, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ ' + data.message);
+                window.location.href = "{% url 'reporte_ventas' %}";
+            } else {
+                alert('❌ Error: ' + data.error);
+                btn.disabled = false;
+                btn.textContent = 'Registrar Venta';
+            }
+        })
+        .catch(error => {
+            alert('❌ Error de conexión: ' + error);
+            btn.disabled = false;
+            btn.textContent = 'Registrar Venta';
+        });
+    });
+</script>
+{% endblock %}

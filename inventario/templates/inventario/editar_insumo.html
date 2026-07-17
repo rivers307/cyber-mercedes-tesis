@@ -1,79 +1,157 @@
 {% extends 'base.html' %}
 
-{% block title %}Editar Insumo - Cyber Mercedes{% endblock %}
+{% block title %}Editar Insumo - Inventario{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'lista_insumos' %}" class="btn btn-secondary">
-            ← Volver
+<div class="p-8 max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-8">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'lista_insumos' %}" class="hover:text-primary transition-colors">Insumos</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Editar Insumo</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Editar Insumo</h2>
+            <p class="text-on-surface-variant mt-1">Actualizar la información del insumo seleccionado</p>
+        </div>
+        <a href="{% url 'lista_insumos' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Volver
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-warning">
-            <h4><i class="bi bi-pencil"></i> Editar Insumo</h4>
+    <!-- Formulario -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">edit</span>
+                        Datos del Insumo
+                    </h3>
+                    <p class="text-sm text-white/40 mt-1">Complete los campos que desea actualizar (* obligatorios)</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-white/40">Código:</span>
+                    <span class="font-mono text-primary font-bold">{{ insumo.codigo }}</span>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <form method="POST">
+        <div class="p-8">
+            <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {% csrf_token %}
                 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Nombre *</label>
-                        <input type="text" name="nombre" class="form-control" value="{{ insumo.nombre }}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Categoría</label>
-                        <select name="categoria" class="form-select">
-                            <option value="">Seleccionar categoría</option>
-                            {% for cat in categorias %}
-                            <option value="{{ cat.id }}" {% if insumo.categoria.id == cat.id %}selected{% endif %}>
-                                {{ cat.nombre }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <!-- Nombre -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Nombre *
+                    </label>
+                    <input type="text" name="nombre" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                        value="{{ insumo.nombre }}" required>
+                </div>
+                
+                <!-- Categoría -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Categoría
+                    </label>
+                    <select name="categoria" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all">
+                        <option value="">Sin categoría</option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if insumo.categoria.id == cat.id %}selected{% endif %}>
+                            {{ cat.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Unidad -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Unidad *
+                    </label>
+                    <select name="unidad" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 transition-all" required>
+                        <option value="unidad" {% if insumo.unidad == 'unidad' %}selected{% endif %}>Unidad</option>
+                        <option value="docena" {% if insumo.unidad == 'docena' %}selected{% endif %}>Docena</option>
+                        <option value="paquete" {% if insumo.unidad == 'paquete' %}selected{% endif %}>Paquete</option>
+                        <option value="metro" {% if insumo.unidad == 'metro' %}selected{% endif %}>Metro</option>
+                        <option value="litro" {% if insumo.unidad == 'litro' %}selected{% endif %}>Litro</option>
+                        <option value="gramo" {% if insumo.unidad == 'gramo' %}selected{% endif %}>Gramo</option>
+                        <option value="kilogramo" {% if insumo.unidad == 'kilogramo' %}selected{% endif %}>Kilogramo</option>
+                    </select>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Unidad</label>
-                        <select name="unidad" class="form-select">
-                            <option value="unidad" {% if insumo.unidad == 'unidad' %}selected{% endif %}>Unidad</option>
-                            <option value="docena" {% if insumo.unidad == 'docena' %}selected{% endif %}>Docena</option>
-                            <option value="paquete" {% if insumo.unidad == 'paquete' %}selected{% endif %}>Paquete</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Stock Mínimo</label>
-                        <input type="number" name="stock_minimo" class="form-control" value="{{ insumo.stock_minimo }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Precio Unitario (Bs)</label>
-                        <input type="number" step="0.01" name="precio_unitario" class="form-control" value="{{ insumo.precio_unitario }}">
+                <!-- Stock Mínimo -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Stock Mínimo
+                    </label>
+                    <input type="number" name="stock_minimo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                        value="{{ insumo.stock_minimo }}" min="0">
+                    <p class="text-[9px] text-white/30">Cuando el stock llegue a este número, se generará una alerta.</p>
+                </div>
+                
+                <!-- Precio Unitario -->
+<div class="space-y-2">
+    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        Precio Unitario (Bs)
+    </label>
+    <input type="text" name="precio_unitario" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+        value="{{ insumo.precio_unitario|floatformat:2 }}" step="0.01" 
+        placeholder="0.00">
+    <p class="text-[9px] text-white/30">Usa punto (.) como separador decimal. Ej: 10.50</p>
+</div>
+                
+                <!-- Proveedor -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Proveedor
+                    </label>
+                    <input type="text" name="proveedor" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                        value="{{ insumo.proveedor }}" placeholder="Ej: Distribuidora XYZ">
+                </div>
+                
+                <!-- Ubicación -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Ubicación
+                    </label>
+                    <input type="text" name="ubicacion" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                        value="{{ insumo.ubicacion }}" placeholder="Ej: Estante A, Fila 3">
+                </div>
+                
+                <!-- Notas -->
+                <div class="col-span-1 md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Notas
+                    </label>
+                    <textarea name="notas" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                            rows="3" placeholder="Información adicional sobre este insumo...">{{ insumo.notas }}</textarea>
+                </div>
+                
+                <!-- Información adicional del estado actual -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="glass-card p-4 rounded-xl border-l-4 border-primary">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-primary">info</span>
+                            <div>
+                                <p class="text-sm text-white/80 font-medium">Stock Actual: <span class="text-primary font-bold">{{ insumo.stock_actual }} {{ insumo.unidad }}</span></p>
+                                <p class="text-xs text-white/50 mt-1">Código: {{ insumo.codigo }} | Creado: {{ insumo.fecha_creacion|date:"d/m/Y" }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Proveedor</label>
-                        <input type="text" name="proveedor" class="form-control" value="{{ insumo.proveedor }}">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Ubicación</label>
-                        <input type="text" name="ubicacion" class="form-control" value="{{ insumo.ubicacion }}">
-                    </div>
+                
+                <!-- Botones -->
+                <div class="col-span-1 md:col-span-2 flex justify-end gap-4 pt-4 border-t border-white/10">
+                    <a href="{% url 'lista_insumos' %}" class="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-amber-500/30 hover:opacity-90 transition-all">
+                        Actualizar Insumo
+                    </button>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Notas</label>
-                    <textarea name="notas" class="form-control" rows="3">{{ insumo.notas }}</textarea>
-                </div>
-
-                <button type="submit" class="btn btn-warning">
-                    Guardar Cambios
-                </button>
             </form>
         </div>
     </div>

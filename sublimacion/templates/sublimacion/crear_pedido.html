@@ -1,93 +1,335 @@
 {% extends 'base.html' %}
 
-{% block title %}Nuevo Pedido - Cyber Mercedes{% endblock %}
+{% block title %}Nuevo Pedido de Sublimación{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'sublimacion_dashboard' %}" class="btn btn-secondary">
-            ← Volver
-        </a>
+<div class="p-8 space-y-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-black tracking-tight text-white">Nuevo Pedido de Sublimación</h2>
+            <p class="text-slate-400">Registrar una nueva orden de trabajo</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'gestionar_productos' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition text-slate-300">
+                <span class="material-symbols-outlined text-sm">inventory</span>
+                Ver Inventario
+            </a>
+            <a href="{% url 'sublimacion_dashboard' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Cancelar
+            </a>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h4><i class="bi bi-plus-circle"></i> Nuevo Pedido de Sublimación</h4>
+    <!-- Mostrar mensajes de error generales -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="p-4 rounded-xl {% if message.tags == 'error' %}bg-red-500/20 border border-red-500/30 text-red-400{% elif message.tags == 'success' %}bg-green-500/20 border border-green-500/30 text-green-400{% else %}bg-amber-500/20 border border-amber-500/30 text-amber-400{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-8 py-5 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white uppercase tracking-wider text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-400 text-lg">add_box</span>
+                Datos del Pedido
+            </h3>
         </div>
-        <div class="card-body">
-            <form method="POST" action="{% url 'crear_pedido' %}">
+        <div class="p-8">
+            <form method="POST" action="{% url 'crear_pedido' %}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-8" id="formPedido" novalidate>
                 {% csrf_token %}
                 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Nombre del Cliente *</label>
-                        <input type="text" name="nombre_cliente" class="form-control" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Teléfono</label>
-                        <input type="text" name="telefono" class="form-control" placeholder="Ej: 0412-1234567">
-                    </div>
+                <!-- ========== DATOS DEL CLIENTE ========== -->
+                <div class="col-span-1 md:col-span-2 mb-2">
+                    <h4 class="text-purple-400 font-bold text-sm uppercase tracking-wider border-b border-purple-500/20 pb-2">Datos del Cliente</h4>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2" for="{{ form.nombre_cliente.id_for_label }}">
+                        <span class="material-symbols-outlined text-sm">person</span>
+                        Nombre Completo *
+                    </label>
+                    {{ form.nombre_cliente }}
+                    {% if form.nombre_cliente.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.nombre_cliente.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2" for="{{ form.id_cliente.id_for_label }}">
+                        <span class="material-symbols-outlined text-sm">badge</span>
+                        ID / RIF *
+                    </label>
+                    {{ form.id_cliente }}
+                    {% if form.id_cliente.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.id_cliente.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2" for="{{ form.telefono_cliente.id_for_label }}">
+                        <span class="material-symbols-outlined text-sm">call</span>
+                        Teléfono *
+                    </label>
+                    {{ form.telefono_cliente }}
+                    {% if form.telefono_cliente.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.telefono_cliente.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-span-1 md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2" for="{{ form.direccion_cliente.id_for_label }}">
+                        <span class="material-symbols-outlined text-sm">home</span>
+                        Dirección *
+                    </label>
+                    {{ form.direccion_cliente }}
+                    {% if form.direccion_cliente.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.direccion_cliente.errors.0 }}</div>
+                    {% endif %}
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Producto *</label>
-                        <select name="producto" class="form-select" required>
-                            <option value="">Seleccione un producto</option>
-                            {% for producto in productos %}
-                            <option value="{{ producto.id }}">
-                                {{ producto.nombre }} - {{ producto.get_tipo_display }} (Bs {{ producto.precio_base }}) - Stock: {{ producto.stock }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Cantidad *</label>
-                        <input type="number" name="cantidad" class="form-control" value="1" min="1" required>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Abono Inicial (Bs)</label>
-                        <input type="number" step="0.50" name="abono" class="form-control" value="0">
+                <!-- ========== DATOS DEL PEDIDO ========== -->
+                <div class="col-span-1 md:col-span-2 mt-4 mb-2">
+                    <h4 class="text-purple-400 font-bold text-sm uppercase tracking-wider border-b border-purple-500/20 pb-2">Datos del Pedido</h4>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2" for="{{ form.producto.id_for_label }}">
+                        <span class="material-symbols-outlined text-sm">inventory_2</span>
+                        Producto Base *
+                    </label>
+                    {{ form.producto }}
+                    {% if form.producto.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.producto.errors.0 }}</div>
+                    {% endif %}
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-[9px] text-white/30">Stock disponible: <span id="stock_disponible">0</span></span>
+                        <span class="text-[9px] text-white/30">Precio: <span id="precio_usd_display">$0.00</span> / <span id="precio_bs_display">Bs 0.00</span></span>
+                        <a href="{% url 'gestionar_productos' %}" class="text-[9px] text-purple-400 hover:underline">+ Agregar nuevo producto</a>
                     </div>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Especificaciones del Diseño</label>
-                    <textarea name="especificaciones" class="form-control" rows="4" placeholder="Color, talla, diseño, texto, imagen, etc..."></textarea>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest" for="{{ form.cantidad.id_for_label }}">Cantidad *</label>
+                    {{ form.cantidad }}
+                    {% if form.cantidad.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.cantidad.errors.0 }}</div>
+                    {% endif %}
                 </div>
-
-                <div class="alert alert-info">
-                    <strong>Información:</strong> El precio total se calculará automáticamente según el producto y cantidad seleccionados.
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest" for="{{ form.abono.id_for_label }}">Abono Inicial (Bs)</label>
+                    {{ form.abono }}
+                    {% if form.abono.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.abono.errors.0 }}</div>
+                    {% endif %}
                 </div>
-
-                <button type="submit" class="btn btn-success">
-                    <i class="bi bi-save"></i> Guardar Pedido
-                </button>
-                <a href="{% url 'sublimacion_dashboard' %}" class="btn btn-secondary">Cancelar</a>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Estimada de Entrega</label>
+                    <input type="date" name="fecha_entrega" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-purple-500/50 transition-all">
+                </div>
+                
+                <!-- ========== DISEÑO Y ESPECIFICACIONES ========== -->
+                <div class="col-span-1 md:col-span-2 mt-4 mb-2">
+                    <h4 class="text-purple-400 font-bold text-sm uppercase tracking-wider border-b border-purple-500/20 pb-2">Diseño y Especificaciones</h4>
+                </div>
+                
+                <div class="col-span-1 md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-purple-400/80" for="{{ form.archivo_diseno.id_for_label }}">Carga de Diseño Digital</label>
+                    <div class="border-2 border-dashed border-purple-500/20 rounded-2xl p-10 flex flex-col items-center justify-center bg-purple-500/5 hover:bg-purple-500/10 transition-all cursor-pointer group" onclick="document.getElementById('archivo_diseno').click()">
+                        <span class="material-symbols-outlined text-purple-400/40 group-hover:text-purple-400 text-4xl mb-3">cloud_upload</span>
+                        <p class="text-sm font-semibold text-slate-300">Selecciona o arrastra el archivo de diseño</p>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">PNG, AI, PSD o PDF (Máx 25MB)</p>
+                        {{ form.archivo_diseno }}
+                        <div id="nombre_archivo" class="text-xs text-purple-400 mt-2 hidden"></div>
+                    </div>
+                    {% if form.archivo_diseno.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.archivo_diseno.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-span-1 md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest" for="{{ form.especificaciones.id_for_label }}">Especificaciones del Diseño</label>
+                    {{ form.especificaciones }}
+                    {% if form.especificaciones.errors %}
+                        <div class="text-red-400 text-xs mt-1">{{ form.especificaciones.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-span-1 md:col-span-2 flex justify-end gap-4 pt-4">
+                    <a href="{% url 'sublimacion_dashboard' %}" class="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-10 py-3 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-purple-500/30 hover:opacity-90 transition-all">
+                        Guardar Pedido
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Mostrar precio total al seleccionar producto y cantidad
-    
-    function actualizarPrecio() {
-        const productoSelect = document.querySelector('select[name="producto"]');
-        const cantidad = document.querySelector('input[name="cantidad"]').value;
-        const productoId = productoSelect.value;
-        
-        if (productoId) {
-            // Buscar producto seleccionado
-            fetch('/sublimacion/api/precio/?producto=' + productoId + '&cantidad=' + cantidad)
-                .then(response => response.json())
-                .then(data => {
-                    // Mostrar precio si es necesario
-                });
+    // Actualizar stock y precios al seleccionar producto
+    const selectProducto = document.querySelector('select[name="producto"]');
+    const stockSpan = document.getElementById('stock_disponible');
+    const precioUsdDisplay = document.getElementById('precio_usd_display');
+    const precioBsDisplay = document.getElementById('precio_bs_display');
+
+    function actualizarInfoProducto() {
+        const selected = selectProducto.options[selectProducto.selectedIndex];
+        if (selected && selected.value) {
+            const precioUsd = parseFloat(selected.dataset.precioUsd) || 0;
+            const precioBs = parseFloat(selected.dataset.precioBs) || 0;
+            stockSpan.textContent = selected.dataset.stock || '0';
+            precioUsdDisplay.textContent = `$${precioUsd.toFixed(2)}`;
+            precioBsDisplay.textContent = `Bs ${precioBs.toFixed(2)}`;
+        } else {
+            stockSpan.textContent = '0';
+            precioUsdDisplay.textContent = '$0.00';
+            precioBsDisplay.textContent = 'Bs 0.00';
         }
     }
-    
-    document.querySelector('select[name="producto"]').addEventListener('change', actualizarPrecio);
-    document.querySelector('input[name="cantidad"]').addEventListener('input', actualizarPrecio);
+
+    if (selectProducto) {
+        selectProducto.addEventListener('change', actualizarInfoProducto);
+        // Cargar datos iniciales
+        setTimeout(actualizarInfoProducto, 100);
+    }
+
+    // Mostrar nombre del archivo seleccionado
+    const fileInput = document.getElementById('archivo_diseno');
+    const nombreArchivoDiv = document.getElementById('nombre_archivo');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                nombreArchivoDiv.textContent = this.files[0].name;
+                nombreArchivoDiv.classList.remove('hidden');
+            } else {
+                nombreArchivoDiv.classList.add('hidden');
+            }
+        });
+    }
+
+    // ============================================================
+    // ===== VALIDACIÓN EN FRONTEND (JavaScript) =====
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formPedido');
+
+        // Función para validar teléfono (formato venezolano/internacional)
+        function validarTelefono(telefono) {
+            const limpio = telefono.replace(/[\s\-\(\)]/g, '');
+            const patrones = [
+                /^\+?58?\d{10}$/,
+                /^0[4,9]\d{9}$/,
+                /^\+?58\s?[0,4,9]\d{9}$/
+            ];
+            return patrones.some(p => p.test(limpio));
+        }
+
+        // Función para validar ID/RIF (V-12345678, J-123456789, etc.)
+        function validarId(id) {
+            const limpio = id.replace(/[\s\-]/g, '').toUpperCase();
+            return /^[V,E,J,G,P]\d{6,9}$/.test(limpio) || /^[J,G,V,E]\d{9}$/.test(limpio);
+        }
+
+        // Agregar eventos de blur a los campos para validación en tiempo real
+        const telefonoInput = document.querySelector('input[name="telefono_cliente"]');
+        if (telefonoInput) {
+            telefonoInput.addEventListener('blur', function() {
+                const valor = this.value.trim();
+                if (valor && !validarTelefono(valor)) {
+                    mostrarError(this, 'Formato inválido. Use: +58 412-5551234 o 0412-5551234');
+                } else {
+                    limpiarError(this);
+                }
+            });
+        }
+
+        const idInput = document.querySelector('input[name="id_cliente"]');
+        if (idInput) {
+            idInput.addEventListener('blur', function() {
+                const valor = this.value.trim();
+                if (valor && !validarId(valor)) {
+                    mostrarError(this, 'Formato inválido. Use: V-12345678, J-123456789, etc.');
+                } else {
+                    limpiarError(this);
+                }
+            });
+        }
+
+        // Función para mostrar error debajo del campo
+        function mostrarError(campo, mensaje) {
+            let errorDiv = campo.parentElement.querySelector('.error-frontend');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'text-red-400 text-xs mt-1 error-frontend';
+                campo.parentElement.appendChild(errorDiv);
+            }
+            errorDiv.textContent = mensaje;
+            campo.classList.add('border-red-500', 'border-2');
+        }
+
+        function limpiarError(campo) {
+            const errorDiv = campo.parentElement.querySelector('.error-frontend');
+            if (errorDiv) errorDiv.remove();
+            campo.classList.remove('border-red-500', 'border-2');
+        }
+
+        // Validar antes de enviar el formulario
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+
+            // Validar nombre
+            const nombre = document.querySelector('input[name="nombre_cliente"]');
+            if (nombre && nombre.value.trim().length < 3) {
+                mostrarError(nombre, 'El nombre debe tener al menos 3 caracteres.');
+                isValid = false;
+            }
+
+            // Validar teléfono
+            const telefono = document.querySelector('input[name="telefono_cliente"]');
+            if (telefono && !validarTelefono(telefono.value.trim())) {
+                mostrarError(telefono, 'Formato inválido. Use: +58 412-5551234 o 0412-5551234');
+                isValid = false;
+            }
+
+            // Validar ID/RIF
+            const id = document.querySelector('input[name="id_cliente"]');
+            if (id && !validarId(id.value.trim())) {
+                mostrarError(id, 'Formato inválido. Use: V-12345678, J-123456789, etc.');
+                isValid = false;
+            }
+
+            // Validar dirección
+            const direccion = document.querySelector('textarea[name="direccion_cliente"]');
+            if (direccion && direccion.value.trim().length < 5) {
+                mostrarError(direccion, 'La dirección debe tener al menos 5 caracteres.');
+                isValid = false;
+            }
+
+            // Validar producto seleccionado
+            const producto = document.querySelector('select[name="producto"]');
+            if (producto && !producto.value) {
+                mostrarError(producto, 'Selecciona un producto.');
+                isValid = false;
+            }
+
+            // Validar cantidad
+            const cantidad = document.querySelector('input[name="cantidad"]');
+            if (cantidad && (parseInt(cantidad.value) < 1 || isNaN(parseInt(cantidad.value)))) {
+                mostrarError(cantidad, 'La cantidad debe ser al menos 1.');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    });
 </script>
 {% endblock %}

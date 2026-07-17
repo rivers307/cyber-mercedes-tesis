@@ -1,98 +1,205 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Reporte de Sublimación - Cyber Mercedes{% endblock %}
+{% block title %}Reporte de Sublimación - Cyber Comunal Mercedes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Volver</a>
-        <a href="{% url 'exportar_reporte' 'pedidos' %}" class="btn btn-success float-end">
-            <i class="bi bi-download"></i> Exportar CSV
-        </a>
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Reporte de Sublimación</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Reporte de Sublimación</h2>
+            <p class="text-on-surface-variant mt-1">Pedidos de sublimación con precios en Bs y USD</p>
+        </div>
+        <div class="flex gap-3 flex-wrap">
+            <a href="{% url 'exportar_sublimacion_excel' %}" class="flex items-center gap-2 px-5 py-2.5 bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl text-sm font-bold hover:bg-green-500 hover:text-white transition-all">
+                <span class="material-symbols-outlined text-sm">download</span>
+                Excel
+            </a>
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver
+            </a>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h4><i class="bi bi-cup-straw"></i> Reporte de Sublimación</h4>
+    <!-- Tarjetas de resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Total Pedidos</p>
+            <h3 class="text-2xl font-bold text-white mt-2">{{ total_pedidos }}</h3>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <canvas id="estadosChart" height="250"></canvas>
-                </div>
-                <div class="col-md-6">
-                    <canvas id="productosChart" height="250"></canvas>
-                </div>
-            </div>
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Total Ingresos (Bs)</p>
+            <h3 class="text-2xl font-bold text-white mt-2">Bs {{ total_bs|floatformat:2 }}</h3>
+        </div>
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Total Ingresos (USD)</p>
+            <h3 class="text-2xl font-bold text-white mt-2">$ {{ total_usd|floatformat:2 }}</h3>
+        </div>
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Tasa de Cambio</p>
+            <h3 class="text-2xl font-bold text-primary mt-2">Bs {{ tasa_valor|floatformat:2 }}</h3>
+            <p class="text-xs text-white/40">/ USD</p>
+        </div>
+    </div>
 
-            <hr>
-
-            <h5 class="mt-4">Resumen de Pedidos</h5>
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Producto</th>
-                            <th>Estado</th>
-                            <th>Total</th>
-                            <th>Abono</th>
-                            <th>Saldo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaPedidos"></tbody>
-                </table>
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Gráfico de estados -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-white font-bold text-lg mb-4">Estado de Pedidos</h3>
+            <div class="h-64">
+                <canvas id="estadosChart"></canvas>
             </div>
+        </div>
+
+        <!-- Gráfico de productos más vendidos -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-white font-bold text-lg mb-4">Productos Más Vendidos</h3>
+            <div class="h-64">
+                <canvas id="productosChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de pedidos -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">receipt</span>
+                Lista de Pedidos
+            </h3>
+            <span class="text-xs text-white/40">{{ pedidos|length }} registros</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-white/5">
+                    <tr class="text-[10px] font-bold uppercase tracking-widest text-white/40 border-b border-white/10">
+                        <th class="px-6 py-5">ID</th>
+                        <th class="px-6 py-5">Cliente</th>
+                        <th class="px-6 py-5">Producto</th>
+                        <th class="px-6 py-5 text-center">Cant.</th>
+                        <th class="px-6 py-5 text-right">Total (Bs)</th>
+                        <th class="px-6 py-5 text-right">Total (USD)</th>
+                        <th class="px-6 py-5 text-right">Abono</th>
+                        <th class="px-6 py-5 text-right">Saldo</th>
+                        <th class="px-6 py-5">Estado</th>
+                        <th class="px-6 py-5 text-right">Fecha</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for pedido in pedidos %}
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="px-6 py-5 text-primary font-mono text-sm">#{{ pedido.id }}</td>
+                        <td class="px-6 py-5 font-medium text-white">{{ pedido.cliente }}</td>
+                        <td class="px-6 py-5 text-white/60">{{ pedido.producto }}</td>
+                        <td class="px-6 py-5 text-center text-white">{{ pedido.cantidad }}</td>
+                        <td class="px-6 py-5 text-right font-mono text-white">Bs {{ pedido.precio_bs|floatformat:2 }}</td>
+                        <td class="px-6 py-5 text-right font-mono text-white">$ {{ pedido.precio_usd|floatformat:2 }}</td>
+                        <td class="px-6 py-5 text-right text-white">Bs {{ pedido.abono|floatformat:2 }}</td>
+                        <td class="px-6 py-5 text-right font-bold 
+                            {% if pedido.saldo > 0 %}text-amber-400{% else %}text-green-400{% endif %}">
+                            Bs {{ pedido.saldo|floatformat:2 }}
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider 
+                                {% if pedido.estado == 'entregado' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                                {% elif pedido.estado == 'pendiente' %}bg-amber-500/20 text-amber-400 border border-amber-500/30
+                                {% elif pedido.estado == 'produccion' %}bg-purple-500/20 text-purple-400 border border-purple-500/30
+                                {% elif pedido.estado == 'diseño' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                                {% elif pedido.estado == 'listo' %}bg-green-500/20 text-green-500 border border-green-500/30
+                                {% else %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}">
+                                {{ pedido.estado_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-5 text-right text-white/60 text-sm">{{ pedido.fecha|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="px-6 py-12 text-center text-white/40">
+                            No hay pedidos de sublimación registrados
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-fetch('/api/sublimacion-stats/')
-    .then(response => response.json())
-    .then(data => {
-        new Chart(document.getElementById('estadosChart'), {
+    document.addEventListener('DOMContentLoaded', function() {
+        // ========== GRÁFICO DE ESTADOS ==========
+        const estados = {{ estados|safe }};
+        const estadosLabels = Object.keys(estados);
+        const estadosData = Object.values(estados);
+        const colores = ['#f59e0b', '#3b82f6', '#8b5cf6', '#22c55e', '#10b981', '#ef4444'];
+
+        const ctx1 = document.getElementById('estadosChart').getContext('2d');
+        new Chart(ctx1, {
             type: 'doughnut',
             data: {
-                labels: Object.keys(data.estados),
+                labels: estadosLabels,
                 datasets: [{
-                    data: Object.values(data.estados),
-                    backgroundColor: ['#ffc107', '#17a2b8', '#007bff', '#28a745', '#6c757d']
+                    data: estadosData,
+                    backgroundColor: colores.slice(0, estadosLabels.length),
+                    borderWidth: 0
                 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#fff' }
+                    }
+                },
+                cutout: '70%'
             }
         });
 
-        new Chart(document.getElementById('productosChart'), {
+        // ========== GRÁFICO DE PRODUCTOS MÁS VENDIDOS ==========
+        const productos = {{ productos|safe }};
+        const ctx2 = document.getElementById('productosChart').getContext('2d');
+        new Chart(ctx2, {
             type: 'bar',
             data: {
-                labels: data.productos.slice(0,5).map(p => p.nombre),
+                labels: productos.map(p => p.nombre),
                 datasets: [{
                     label: 'Unidades Vendidas',
-                    data: data.productos.slice(0,5).map(p => p.total),
-                    backgroundColor: '#2c5f2d'
+                    data: productos.map(p => p.total),
+                    backgroundColor: 'rgba(157, 80, 255, 0.6)',
+                    borderColor: 'rgba(157, 80, 255, 0.8)',
+                    borderRadius: 8,
+                    barPercentage: 0.6
                 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#fff', stepSize: 1 }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#fff' }
+                    }
+                }
             }
-        });
-    });
-
-// Cargar pedidos
-fetch('http://localhost:8000/api/pedidos/')
-    .then(response => response.json())
-    .then(data => {
-        const tbody = document.getElementById('tablaPedidos');
-        data.pedidos.forEach(p => {
-            const row = `<tr>
-                <td>${p.id}</td>
-                <td>${p.nombre_cliente}</td>
-                <td>${p.producto_nombre}</td>
-                <td>${p.estado_display}</td>
-                <td>Bs ${p.precio_total}</td>
-                <td>Bs ${p.abono}</td>
-                <td>Bs ${p.saldo}</td>
-            </tr>`;
-            tbody.innerHTML += row;
         });
     });
 </script>

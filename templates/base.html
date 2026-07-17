@@ -1,221 +1,546 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html class="dark" lang="es" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Cyber Mercedes{% endblock %}</title>
-    <!-- Bootstrap 5 + Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{% block title %}Cyber Comunal Mercedes{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <style>
-        * {
-            font-family: 'Inter', sans-serif;
+        :root {
+            /* ===== TEMA OSCURO (por defecto) ===== */
+            --bg-primary: #050508;
+            --bg-secondary: #110c1d;
+            --bg-card: rgba(17, 12, 29, 0.7);
+            --bg-card-solid: #1a1228;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-inverted: #1a1a2e;
+            --border-color: rgba(157, 80, 255, 0.1);
+            --sidebar-bg: linear-gradient(180deg, #0d0b14 0%, #110c1d 100%);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --shadow-card: 0 4px 24px -1px rgba(0, 0, 0, 0.3);
+            --hover-bg: rgba(255, 255, 255, 0.05);
+            
+            --obsidian-dark: #050508;
+            --obsidian-purple: #110c1d;
+            --neon-purple: #9d50ff;
+            --neon-glow: rgba(157, 80, 255, 0.3);
+            --sidebar-width: 280px;
+            --glass-bg: rgba(17, 12, 29, 0.7);
         }
+
+        /* ===== TEMA CLARO ===== */
+        [data-theme="light"] {
+            --bg-primary: #f5f0ff;
+            --bg-secondary: #ede6f8;
+            --bg-card: rgba(255, 255, 255, 0.92);
+            --bg-card-solid: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #3a3a5a;
+            --text-inverted: #ffffff;
+            --border-color: rgba(157, 80, 255, 0.15);
+            --sidebar-bg: linear-gradient(180deg, #ede6f8 0%, #f5f0ff 100%);
+            --shadow-color: rgba(157, 80, 255, 0.08);
+            --shadow-card: 0 4px 24px -1px rgba(157, 80, 255, 0.12);
+            --hover-bg: rgba(157, 80, 255, 0.06);
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --obsidian-dark: #f5f0ff;
+            --obsidian-purple: #ede6f8;
+        }
+
         body {
-            background-color: #f5f7fb;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        .sidebar {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1a472a 0%, #0d2818 100%);
-            transition: all 0.3s;
+
+        .neon-purple-gradient {
+            background: linear-gradient(135deg, #7c3aed 0%, #9d50ff 100%);
         }
-        .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 12px 20px;
-            margin: 4px 0;
+
+        .sidebar-premium {
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(157, 80, 255, 0.3);
+            box-shadow: 0 0 20px rgba(157, 80, 255, 0.05);
+        }
+
+        .active-nav-item {
+            background: rgba(157, 80, 255, 0.1);
+            color: white !important;
+            position: relative;
+        }
+
+        .active-nav-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            height: 60%;
+            width: 3px;
+            background: var(--neon-purple);
+            box-shadow: 0 0 10px var(--neon-purple);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .active-nav-item .material-symbols-outlined {
+            color: var(--neon-purple);
+            font-variation-settings: 'FILL' 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(157, 80, 255, 0.2);
             border-radius: 10px;
-            transition: all 0.3s;
         }
-        .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            transform: translateX(5px);
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-purple);
         }
-        .sidebar .nav-link.active {
-            background: rgba(255,255,255,0.2);
-            color: white;
+
+        .btn-purple {
+            background: linear-gradient(135deg, #7c3aed 0%, #9d50ff 100%);
+            transition: all 0.3s ease;
         }
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 24px;
+
+        .btn-purple:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(157, 80, 255, 0.4);
         }
-        .top-bar {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            padding: 10px 20px;
-            margin-bottom: 25px;
+
+        /* ===== ESTILOS PARA TEMA CLARO ===== */
+        [data-theme="light"] .glass-card {
+            background: var(--bg-card-solid);
+            border-color: rgba(157, 80, 255, 0.12);
+            box-shadow: 0 4px 20px rgba(157, 80, 255, 0.08);
         }
-        .card-modern {
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-            transition: all 0.3s;
+
+        [data-theme="light"] .text-white {
+            color: #1a1a2e !important;
         }
-        .card-modern:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+
+        [data-theme="light"] .text-white\/60 {
+            color: rgba(26, 26, 46, 0.6) !important;
         }
-        .stat-card {
-            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-            border-left: 4px solid #2c5f2d;
+
+        [data-theme="light"] .text-white\/40 {
+            color: rgba(26, 26, 46, 0.4) !important;
         }
-        .btn-custom {
-            background: linear-gradient(135deg, #2c5f2d 0%, #1e451f 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 10px 25px;
-            font-weight: 500;
-            transition: all 0.3s;
+
+        [data-theme="light"] .text-white\/30 {
+            color: rgba(26, 26, 46, 0.3) !important;
         }
-        .btn-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(44,95,45,0.3);
+
+        [data-theme="light"] .text-white\/20 {
+            color: rgba(26, 26, 46, 0.2) !important;
         }
-        .table-custom {
-            border-radius: 15px;
-            overflow: hidden;
+
+        [data-theme="light"] .text-white\/10 {
+            color: rgba(26, 26, 46, 0.1) !important;
         }
-        .table-custom thead {
-            background: linear-gradient(135deg, #2c5f2d 0%, #1e451f 100%);
-            color: white;
+
+        [data-theme="light"] .text-purple-400 {
+            color: #6d28d9 !important;
         }
-        .badge-custom {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 500;
+
+        [data-theme="light"] .text-purple-300 {
+            color: #7c3aed !important;
         }
-        footer {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            margin-top: 30px;
+
+        [data-theme="light"] .text-slate-400 {
+            color: #4a4a6a !important;
+        }
+
+        [data-theme="light"] .border-white\/10 {
+            border-color: rgba(157, 80, 255, 0.12) !important;
+        }
+
+        [data-theme="light"] .bg-white\/5 {
+            background-color: rgba(157, 80, 255, 0.05) !important;
+        }
+
+        [data-theme="light"] .hover\:text-white:hover {
+            color: #1a1a2e !important;
+        }
+
+        [data-theme="light"] .sidebar-premium {
+            background: linear-gradient(180deg, #ede6f8 0%, #f5f0ff 100%);
+            border-right: 1px solid rgba(157, 80, 255, 0.1);
+        }
+
+        [data-theme="light"] .active-nav-item {
+            background: rgba(157, 80, 255, 0.08);
+        }
+
+        [data-theme="light"] .input-field {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(157, 80, 255, 0.2);
+            color: #1a1a2e !important;
+        }
+
+        [data-theme="light"] .input-field:focus {
+            border-color: #9d50ff;
+            box-shadow: 0 0 0 2px rgba(157, 80, 255, 0.15);
+            background: #ffffff;
+        }
+
+        /* ===== ESTILOS PARA TEMA OSCURO ===== */
+        [data-theme="dark"] .text-white {
+            color: #e2e8f0 !important;
+        }
+
+        [data-theme="dark"] .text-white\/60 {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        [data-theme="dark"] .text-white\/40 {
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+
+        [data-theme="dark"] .text-white\/30 {
+            color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        [data-theme="dark"] .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+
+        [data-theme="dark"] .text-purple-400 {
+            color: #9d50ff !important;
+        }
+
+        [data-theme="dark"] .text-amber-300 {
+            color: #fcd34d !important;
+        }
+
+        [data-theme="dark"] .bg-amber-500\/30 {
+            background-color: rgba(245, 158, 11, 0.3) !important;
+        }
+
+        [data-theme="dark"] .bg-purple-500\/30 {
+            background-color: rgba(157, 80, 255, 0.3) !important;
         }
     </style>
 </head>
-<body>
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <!-- Sidebar -->
-            <div class="col-auto sidebar p-3" style="width: 280px;">
-                <div class="text-center mb-4 mt-3">
-                    <i class="bi bi-pc-display text-white fs-1"></i>
-                    <h4 class="text-white mt-2">Cyber Mercedes</h4>
-                    <span class="badge bg-light text-dark mt-1">v2.0</span>
+<body class="overflow-hidden">
+<div class="flex h-screen w-full">
+    
+    <!-- ⭐ SOLO MOSTRAR SIDEBAR SI EL USUARIO ESTÁ AUTENTICADO ⭐ -->
+    {% if user.is_authenticated %}
+    <!-- Sidebar Premium -->
+    <aside class="w-[var(--sidebar-width)] sidebar-premium flex flex-col shrink-0 z-20">
+        <div class="p-8">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl neon-purple-gradient flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <span class="material-symbols-outlined text-white">church</span>
                 </div>
-                <hr class="bg-light opacity-25">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'estaciones' in request.path %}active{% endif %}" href="{% url 'dashboard_estaciones' %}">
-                            <i class="bi bi-display"></i> Estaciones
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'sublimacion' in request.path %}active{% endif %}" href="{% url 'sublimacion_dashboard' %}">
-                            <i class="bi bi-cup-straw"></i> Sublimación
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'inventario' in request.path %}active{% endif %}" href="{% url 'dashboard_inventario' %}">
-                            <i class="bi bi-box-seam"></i> Inventario
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="collapse" data-bs-target="#reportesMenu">
-                            <i class="bi bi-graph-up"></i> Reportes
-                        </a>
-                        <div class="collapse {% if 'reportes' in request.path %}show{% endif %}" id="reportesMenu">
-                            <ul class="nav flex-column ms-3">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'reporte_ventas' %}">
-                                        <i class="bi bi-currency-dollar"></i> Ventas
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'reporte_estaciones' %}">
-                                        <i class="bi bi-pc-display"></i> Estaciones
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'reporte_sublimacion' %}">
-                                        <i class="bi bi-cup-straw"></i> Sublimación
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'reporte_inventario' %}">
-                                        <i class="bi bi-box-seam"></i> Inventario
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'cierre_caja' %}">
-                                        <i class="bi bi-cash-stack"></i> Cierre de Caja
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-robot"></i> Asistente IA
-                            <span class="badge bg-warning text-dark ms-2">Beta</span>
-                        </a>
-                    </li>
-                </ul>
-                <hr class="bg-light opacity-25 mt-4">
-                <div class="mt-auto">
-                    <div class="dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> {{ user.username }}
-                            <small class="d-block text-white-50">{{ user.rol|default:"Administrador" }}</small>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Panel Admin</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="post" action="{% url 'logout' %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                <div>
+                    <h1 class="font-bold text-white text-lg leading-none tracking-tight">Cyber Comunal</h1>
+                    <p class="text-[10px] text-purple-400/60 uppercase font-bold tracking-[0.2em] mt-1">Ntra. Sra. Mercedes</p>
                 </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="col p-4">
-                <div class="top-bar d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{% block page_title %}Bienvenido{% endblock %}</h5>
-                    <div class="d-flex align-items-center">
-                        <span class="text-muted me-3">
-                            <i class="bi bi-calendar"></i> {% now "d/m/Y H:i" %}
-                        </span>
-                        <div class="dropdown">
-                            <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-bell"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {% block content %}{% endblock %}
-                <footer>
-                    <small>Cyber Comunitario Nuestra Señora de las Mercedes - Villa de Cura, Estado Aragua</small>
-                </footer>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <nav class="flex-grow px-4 space-y-1 overflow-y-auto">
+            <p class="px-4 text-[10px] uppercase font-bold text-white/30 tracking-[0.2em] mb-4 mt-2">Menú Principal</p>
+            
+            <!-- Dashboard -->
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 {% if request.resolver_match.url_name == 'dashboard' %}active-nav-item{% endif %} rounded-xl text-white/60 hover:text-white transition-all group">
+                <span class="material-symbols-outlined text-xl">dashboard</span>
+                <span class="font-medium">Dashboard</span>
+            </a>
+            
+            {% if user.rol == 'admin' or user.rol == 'empleado' %}
+                
+                <!-- Control de PCs -->
+                <a href="{% url 'estaciones:dashboard_estaciones' %}" class="flex items-center gap-3 px-4 py-3 {% if 'estaciones' in request.path %}active-nav-item{% endif %} rounded-xl text-white/60 hover:text-white transition-all group">
+                    <span class="material-symbols-outlined text-xl">computer</span>
+                    <span class="font-medium">Control de PCs</span>
+                </a>
+                
+                <!-- Sublimación -->
+                <a href="{% url 'sublimacion_dashboard' %}" class="flex items-center gap-3 px-4 py-3 {% if 'sublimacion' in request.path %}active-nav-item{% endif %} rounded-xl text-white/60 hover:text-white transition-all group">
+                    <span class="material-symbols-outlined text-xl">brush</span>
+                    <span class="font-medium">Sublimación</span>
+                </a>
+                
+                <!-- Inventario con submenú -->
+                <div class="relative">
+                    <button onclick="toggleSubmenu('inventarioSubmenu')" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-xl">inventory</span>
+                            <span class="font-medium">Inventario</span>
+                        </div>
+                        <span class="material-symbols-outlined text-sm">expand_more</span>
+                    </button>
+                    <div id="inventarioSubmenu" class="hidden ml-8 space-y-1 mt-1">
+                        <a href="{% url 'dashboard_inventario' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">dashboard</span>
+                            Dashboard
+                        </a>
+                        <a href="{% url 'lista_insumos' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">inventory_2</span>
+                            Insumos
+                        </a>
+                        {% if user.rol == 'admin' %}
+                            <a href="{% url 'gestion_activos' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                                <span class="material-symbols-outlined text-base">computer</span>
+                                Activos Fijos
+                            </a>
+                            <a href="{% url 'lista_auditorias' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                                <span class="material-symbols-outlined text-base">event_note</span>
+                                Auditorías Programadas
+                            </a>
+                            <a href="{% url 'auditoria_inventario' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                                <span class="material-symbols-outlined text-base">history</span>
+                                Bitácora de Auditoría
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'historial_movimientos' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">swap_vert</span>
+                            Historial de Movimientos
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Reportes con submenú -->
+                <div class="relative">
+                    <button onclick="toggleSubmenu('reportesSubmenu')" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-xl">assessment</span>
+                            <span class="font-medium">Reportes</span>
+                        </div>
+                        <span class="material-symbols-outlined text-sm">expand_more</span>
+                    </button>
+                    <div id="reportesSubmenu" class="hidden ml-8 space-y-1 mt-1">
+                        <a href="{% url 'reporte_ventas' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">bar_chart</span>
+                            Ventas
+                        </a>
+                        <a href="{% url 'reporte_estaciones' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">computer</span>
+                            Estaciones
+                        </a>
+                        <a href="{% url 'reporte_sublimacion' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">brush</span>
+                            Sublimación
+                        </a>
+                        <a href="{% url 'reporte_inventario' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">inventory</span>
+                            Inventario
+                        </a>
+                        <a href="{% url 'cierre_caja' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                            <span class="material-symbols-outlined text-base">payments</span>
+                            Cierre de Caja
+                        </a>
+                        {% if user.rol == 'admin' %}
+                            <a href="{% url 'auditoria_ventas' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                                <span class="material-symbols-outlined text-base">verified</span>
+                                Auditoría de Ventas
+                            </a>
+                        <a href="{% url 'registrar_venta_page' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                                 <span class="material-symbols-outlined text-base">add_shopping_cart</span>
+                                Registrar Venta
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Asistente IA -->
+                <a href="{% url 'asistente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                    <span class="material-symbols-outlined text-xl">smart_toy</span>
+                    <span class="font-medium">Asistente IA</span>
+                    <span class="text-[8px] bg-purple-500/30 text-purple-300 px-1.5 py-0.5 rounded-full ml-2">Beta</span>
+                </a>
+
+                <!-- ===== SECCIÓN ADMINISTRADOR ===== -->
+                {% if user.rol == 'admin' %}
+                    <a href="{% url 'usuarios:lista_usuarios_pendientes' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                        <span class="material-symbols-outlined text-xl">verified</span>
+                        <span class="font-medium">Verificar Usuarios</span>
+                        <span class="text-[8px] bg-amber-500/30 text-amber-300 px-1.5 py-0.5 rounded-full ml-2">Pendientes</span>
+                    </a>
+
+                    <a href="{% url 'usuarios:admin_crear_usuario' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                        <span class="material-symbols-outlined text-xl">person_add</span>
+                        <span class="font-medium">Crear Usuario</span>
+                    </a>
+                {% endif %}
+            
+            {% else %}
+                <p class="px-4 text-[10px] uppercase font-bold text-white/30 tracking-[0.2em] mt-4 mb-2">Mis Opciones</p>
+                
+                <a href="{% url 'panel_cliente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                    <span class="material-symbols-outlined text-xl">dashboard</span>
+                    <span class="font-medium">Mi Panel</span>
+                </a>
+                
+                <a href="{% url 'perfil_cliente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                    <span class="material-symbols-outlined text-xl">person</span>
+                    <span class="font-medium">Mi Perfil</span>
+                </a>
+            {% endif %}
+        </nav>
+
+        <!-- ===== BOTÓN PARA CAMBIAR TEMA ===== -->
+        <div class="px-4 pb-2">
+            <button onclick="toggleTheme()" class="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-xl" id="themeIcon">dark_mode</span>
+                    <span class="font-medium" id="themeLabel">Modo Oscuro</span>
+                </div>
+                <span class="text-xs text-white/30" id="themeStatus">🌙</span>
+            </button>
+        </div>
+
+        <!-- ===== PERFIL DE USUARIO ===== -->
+        <div class="p-4 border-t border-white/5 mt-auto">
+            <div class="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/5">
+                <div class="w-9 h-9 rounded-full neon-purple-gradient flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-white text-sm">person</span>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <p class="text-white text-sm font-medium truncate">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="text-[10px] text-white/40 uppercase tracking-wider">
+                        {% if user.rol == 'admin' %}Administrador
+                        {% elif user.rol == 'empleado' %}Empleado
+                        {% else %}Cliente{% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'usuarios:logout' %}" class="text-white/40 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-500/10" title="Cerrar sesión">
+                    <span class="material-symbols-outlined text-xl">logout</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="{% if user.is_authenticated %}flex-grow{% else %}w-full{% endif %} overflow-y-auto scroll-smooth">
+        {% block content %}
+        {% if user.is_authenticated %}
+        <div class="p-8">
+            <div class="glass-card rounded-2xl p-12 text-center max-w-2xl mx-auto mt-20">
+                <span class="material-symbols-outlined text-6xl text-white/10 mb-4">info</span>
+                <h2 class="text-2xl font-bold text-white">Bienvenido al Sistema</h2>
+                <p class="text-white/40 mt-2">Selecciona una opción del menú para comenzar</p>
+                <p class="text-white/20 text-sm mt-4">Usuario: {{ user.username }} | Rol: {{ user.rol|default:"Sin rol" }}</p>
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}
+    </main>
+</div>
+
+<script>
+    function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        if (submenu.classList.contains('hidden')) {
+            submenu.classList.remove('hidden');
+        } else {
+            submenu.classList.add('hidden');
+        }
+    }
+
+    // ============================================================
+    // ========== CONTROL DE TEMA (CLARO/OSCURO) ==========
+    // ============================================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const temaServidor = '{{ user.tema|default:"dark" }}';
+        const temaLocal = localStorage.getItem('tema');
+        let tema = temaLocal || temaServidor || 'dark';
+        if ('{{ user.is_authenticated }}' === 'True' && temaServidor !== 'dark') {
+            tema = temaServidor;
+        }
+        aplicarTema(tema);
+    });
+    
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        aplicarTema(newTheme);
+        if ('{{ user.is_authenticated }}' === 'True') {
+            guardarTemaServidor(newTheme);
+        }
+        localStorage.setItem('tema', newTheme);
+    }
+    
+    function aplicarTema(tema) {
+        const html = document.documentElement;
+        html.setAttribute('data-theme', tema);
+        const icon = document.getElementById('themeIcon');
+        const label = document.getElementById('themeLabel');
+        const status = document.getElementById('themeStatus');
+        if (tema === 'light') {
+            icon.textContent = 'light_mode';
+            label.textContent = 'Modo Claro';
+            status.textContent = '☀️';
+        } else {
+            icon.textContent = 'dark_mode';
+            label.textContent = 'Modo Oscuro';
+            status.textContent = '🌙';
+        }
+        localStorage.setItem('tema', tema);
+    }
+    
+    function guardarTemaServidor(tema) {
+        fetch('/cambiar-tema/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: 'tema=' + tema
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Error al guardar tema:', data.error);
+            }
+        })
+        .catch(error => console.error('Error de red:', error));
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
 </body>
 </html>

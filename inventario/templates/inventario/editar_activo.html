@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Activo - Inventario{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-black tracking-tight text-white mb-1">Editar Activo Fijo</h2>
+            <p class="text-sm text-slate-400">{{ activo.nombre }} ({{ activo.codigo }})</p>
+        </div>
+        <a href="{% url 'gestion_activos' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Volver
+        </a>
+    </div>
+
+    <div class="glass rounded-2xl overflow-hidden">
+        <div class="px-8 py-5 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white uppercase tracking-wider text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500 text-lg">edit</span>
+                Datos del Activo
+            </h3>
+        </div>
+        <div class="p-8">
+            <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% csrf_token %}
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Código *</label>
+                    <input type="text" name="codigo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" value="{{ activo.codigo }}" required>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nombre *</label>
+                    <input type="text" name="nombre" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" value="{{ activo.nombre }}" required>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tipo</label>
+                    <select name="tipo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm">
+                        <option value="computadora" {% if activo.tipo == 'computadora' %}selected{% endif %}>🖥️ Computadora</option>
+                        <option value="monitor" {% if activo.tipo == 'monitor' %}selected{% endif %}>🖥️ Monitor</option>
+                        <option value="teclado" {% if activo.tipo == 'teclado' %}selected{% endif %}>⌨️ Teclado</option>
+                        <option value="mouse" {% if activo.tipo == 'mouse' %}selected{% endif %}>🖱️ Mouse</option>
+                        <option value="router" {% if activo.tipo == 'router' %}selected{% endif %}>📡 Router</option>
+                        <option value="impresora" {% if activo.tipo == 'impresora' %}selected{% endif %}>🖨️ Impresora</option>
+                        <option value="mobiliario" {% if activo.tipo == 'mobiliario' %}selected{% endif %}>🪑 Mobiliario</option>
+                        <option value="otro" {% if activo.tipo == 'otro' %}selected{% endif %}>📦 Otro</option>
+                    </select>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado</label>
+                    <select name="estado" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm">
+                        <option value="operativo" {% if activo.estado == 'operativo' %}selected{% endif %}>✅ 100% Operativo</option>
+                        <option value="parcial" {% if activo.estado == 'parcial' %}selected{% endif %}>⚠️ Parcialmente Operativo</option>
+                        <option value="dañado" {% if activo.estado == 'dañado' %}selected{% endif %}>🔧 Dañado/Reparación</option>
+                        <option value="obsoleto" {% if activo.estado == 'obsoleto' %}selected{% endif %}>📦 Obsoleto/Desincorporado</option>
+                    </select>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ubicación</label>
+                    <input type="text" name="ubicacion" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" value="{{ activo.ubicacion }}">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Marca</label>
+                    <input type="text" name="marca" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" value="{{ activo.marca }}">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Modelo</label>
+                    <input type="text" name="modelo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" value="{{ activo.modelo }}">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor Inicial (Bs)</label>
+                    <input type="number" step="0.01" name="valor_inicial" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" value="{{ activo.valor_inicial }}">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Adquisición</label>
+                    <input type="date" name="fecha_adquisicion" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" value="{{ activo.fecha_adquisicion|date:'Y-m-d' }}">
+                </div>
+                
+                <div class="col-span-1 md:col-span-2 space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Notas</label>
+                    <textarea name="notas" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" rows="3">{{ activo.notas }}</textarea>
+                </div>
+                
+                <div class="col-span-1 md:col-span-2 flex justify-end gap-4 pt-4">
+                    <a href="{% url 'gestion_activos' %}" class="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="bg-gradient-to-r from-amber-500 to-amber-700 text-white px-10 py-3 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-amber-500/30 hover:opacity-90 transition-all">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

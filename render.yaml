@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: cyber-mercedes
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cyber-mercedes-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "localhost,127.0.0.1,cyber-mercedes.onrender.com"
+      - key: EMAIL_BACKEND
+        value: "django.core.mail.backends.console.EmailBackend"
+
+databases:
+  - name: cyber-mercedes-db
+    databaseName: cyber_mercedes_db
+    user: cyber_mercedes_user
+    plan: free

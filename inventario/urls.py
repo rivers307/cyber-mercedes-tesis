@@ -13,6 +13,8 @@ urlpatterns = [
     path('inventario/alerta/<int:id>/leer/', views.marcar_alerta_leida, name='marcar_alerta'),
     path('inventario/categoria/crear/', views.crear_categoria, name='crear_categoria'),
     path('inventario/activos/', views.gestion_activos, name='gestion_activos'),
+    path('inventario/activos/editar/<int:id>/', views.editar_activo, name='editar_activo'),
+    path('inventario/activos/eliminar/<int:id>/', views.eliminar_activo, name='eliminar_activo'),
     path('inventario/auditorias/', views.lista_auditorias, name='lista_auditorias'),
     path('inventario/auditoria/programar/', views.programar_auditoria, name='programar_auditoria'),
     path('inventario/auditoria/<int:id>/realizar/', views.realizar_auditoria, name='realizar_auditoria'),
@@ -25,5 +27,7 @@ urlpatterns = [
     path('inventario/auditoria/<int:id>/conciliar/', views.conciliar_auditoria, name='conciliar_auditoria'),
     path('inventario/auditoria/<int:id>/reporte/', views.reporte_auditoria, name='reporte_auditoria'),
     path('inventario/categoria/crear/', views.crear_categoria, name='crear_categoria'),
-
+    path('inventario/auditoria/', views.ver_auditoria_inventario, name='auditoria_inventario'),
+    path('inventario/reporte/excel/', views.exportar_reporte_excel, name='exportar_reporte_excel'),
+    path('inventario/historial/excel/', views.exportar_historial_excel, name='exportar_historial_excel'),
 ]

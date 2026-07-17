@@ -1,116 +1,305 @@
 {% extends 'base.html' %}
 
-{% block title %}Inicio - Cyber Mercedes{% endblock %}
+{% block title %}Dashboard General - Cyber Comunal Mercedes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card bg-success text-white mb-4">
-                <div class="card-body">
-                    <h2 class="card-title">Bienvenido, {{ user.username }}</h2>
-                    <p class="card-text">Sistema de Gestión del Cyber Comunitario "Nuestra Señora de las Mercedes"</p>
+<div class="p-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-white tracking-tight">Dashboard General</h2>
+            <p class="text-purple-400/70 mt-1 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                Sistema operativo y monitoreo en tiempo real
+            </p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/30">search</span>
+                <input class="pl-12 pr-6 py-3 bg-white/5 border border-white/10 rounded-2xl w-64 lg:w-80 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-white placeholder-white/20" 
+                       placeholder="Buscar en el sistema..." type="text" id="buscadorGlobal"/>
+            </div>
+            <button class="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl text-white/40 hover:text-purple-400 hover:border-purple-400/50 transition-all">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <button class="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl text-white/40 hover:text-purple-400 hover:border-purple-400/50 transition-all">
+                <span class="material-symbols-outlined">calendar_today</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Estadísticas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Usuarios Activos -->
+        <div class="glass-card p-6 rounded-2xl transition-all hover:bg-purple-500/5 group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center">
+                    <span class="material-symbols-outlined text-2xl text-purple-400">group</span>
                 </div>
+                <span class="text-[10px] text-green-400 font-bold bg-green-400/10 px-2 py-1 rounded-lg">+12%</span>
+            </div>
+            <p class="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Usuarios Activos</p>
+            <h3 class="text-3xl font-bold text-white">{{ usuarios_activos|default:"0" }}</h3>
+        </div>
+
+        <!-- Equipos en Uso -->
+        <div class="glass-card p-6 rounded-2xl transition-all hover:bg-purple-500/5 group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center">
+                    <span class="material-symbols-outlined text-2xl text-blue-400">computer</span>
+                </div>
+                <span class="text-[10px] text-blue-400 font-bold bg-blue-400/10 px-2 py-1 rounded-lg">90%</span>
+            </div>
+            <p class="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Equipos en Uso</p>
+            <h3 class="text-3xl font-bold text-white">{{ estaciones_ocupadas }} <span class="text-lg text-white/40 font-medium">/ {{ total_estaciones }}</span></h3>
+        </div>
+
+        <!-- Pedidos Sublimación -->
+        <div class="glass-card p-6 rounded-2xl transition-all hover:bg-purple-500/5 group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center">
+                    <span class="material-symbols-outlined text-2xl text-amber-400">shopping_basket</span>
+                </div>
+                <span class="text-[10px] text-amber-400 font-bold bg-amber-400/10 px-2 py-1 rounded-lg">PENDIENTES</span>
+            </div>
+            <p class="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Pedidos Sublimación</p>
+            <h3 class="text-3xl font-bold text-white">{{ pedidos_pendientes }}</h3>
+        </div>
+
+        <!-- Ingresos Totales -->
+        <div class="glass-card p-6 rounded-2xl transition-all hover:bg-purple-500/5 group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center">
+                    <span class="material-symbols-outlined text-2xl text-emerald-400">payments</span>
+                </div>
+                <span class="text-[10px] text-emerald-400 font-bold bg-emerald-400/10 px-2 py-1 rounded-lg">HOY</span>
+            </div>
+            <p class="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Ingresos Totales</p>
+            <h3 class="text-3xl font-bold text-white">Bs {{ ingresos_hoy|floatformat:2 }}</h3>
+        </div>
+    </div>
+
+    <!-- Gráfico y Accesos Rápidos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Gráfico de Rendimiento Financiero -->
+        <div class="lg:col-span-2 glass-card rounded-2xl p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-white font-bold text-lg">Rendimiento Financiero</h3>
+                    <p class="text-white/40 text-sm">Ingresos semanales proyectados vs reales</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="cargarGrafico('semanal')" id="btnSemanal" class="px-4 py-2 bg-purple-500 text-white text-xs font-bold rounded-lg">Semanal</button>
+                    <button onclick="cargarGrafico('mensual')" id="btnMensual" class="px-4 py-2 bg-white/5 text-white/60 text-xs font-bold rounded-lg hover:bg-purple-500/20 transition">Mensual</button>
+                </div>
+            </div>
+            <div class="h-72">
+                <canvas id="ventasChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Accesos Rápidos -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-white font-bold text-lg mb-4">Accesos Rápidos</h3>
+            <div class="space-y-3">
+                <!-- Registrar Usuario - CORREGIDO -->
+                {% if user.rol == 'admin' %}
+                <a href="{% url 'usuarios:registro' %}" class="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white p-4 rounded-xl flex items-center justify-between group hover:-translate-y-1 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined">person_add</span>
+                        </div>
+                        <span class="font-bold">Registrar Usuario</span>
+                    </div>
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </a>
+                {% endif %}
+
+                <!-- Activar PC - CORREGIDO -->
+                <a href="{% url 'estaciones:dashboard_estaciones' %}" class="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 rounded-xl flex items-center justify-between group hover:-translate-y-1 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined">monitor</span>
+                        </div>
+                        <span class="font-bold">Control de PCs</span>
+                    </div>
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </a>
+
+                <!-- Nuevo Pedido - CORREGIDO -->
+                <a href="{% url 'sublimacion_dashboard' %}" class="w-full bg-gradient-to-r from-pink-600 to-purple-700 text-white p-4 rounded-xl flex items-center justify-between group hover:-translate-y-1 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined">add_shopping_cart</span>
+                        </div>
+                        <span class="font-bold">Nuevo Pedido</span>
+                    </div>
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Tarjetas de Estadísticas Generales -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card text-center h-100 shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-pc-display display-1 text-success"></i>
-                    <h3 class="mt-2">{{ total_estaciones }}</h3>
-                    <p class="text-muted">Total de PCs</p>
-                    <div class="d-flex justify-content-around mt-2">
-                        <small><span class="text-success">🟢 {{ estaciones_libres }}</span></small>
-                        <small><span class="text-danger">🔴 {{ estaciones_ocupadas }}</span></small>
-                        <small><span class="text-warning">🟡 {{ estaciones_mantenimiento }}</span></small>
+    <!-- Personal de Turno y Lista de Pedidos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Personal de Turno -->
+        <div class="glass-card rounded-2xl p-6">
+            <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-400">badge</span>
+                Personal de Turno
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all cursor-pointer">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">admin_panel_settings</span>
+                            </div>
+                            <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-[#0d0b14] rounded-full"></span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white">{{ user.username }}</p>
+                            <p class="text-[10px] text-white/40 uppercase font-bold tracking-tight">{{ user.rol|default:"Administrador" }}</p>
+                        </div>
                     </div>
+                    <span class="material-symbols-outlined text-white/20">more_vert</span>
                 </div>
-                <a href="{% url 'dashboard_estaciones' %}" class="stretched-link"></a>
             </div>
         </div>
-        
-        <div class="col-md-4 mb-3">
-            <div class="card text-center h-100 shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-cup-straw display-1 text-primary"></i>
-                    <h3 class="mt-2">{{ total_pedidos }}</h3>
-                    <p class="text-muted">Total de Pedidos</p>
-                    <div class="d-flex justify-content-around mt-2">
-                        <small><span class="text-warning">📋 {{ pedidos_pendientes }}</span></small>
-                        <small><span class="text-info">🎨 {{ pedidos_produccion }}</span></small>
-                        <small><span class="text-success">✅ {{ pedidos_listos }}</span></small>
-                    </div>
-                </div>
-                <a href="{% url 'sublimacion_dashboard' %}" class="stretched-link"></a>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-3">
-            <div class="card text-center h-100 shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-currency-dollar display-1 text-warning"></i>
-                    <h3 class="mt-2">Bs {{ ingresos_hoy|floatformat:2 }}</h3>
-                    <p class="text-muted">Ventas Hoy</p>
-                    <small class="text-muted">Mes: Bs {{ ingresos_mes|floatformat:2 }}</small>
-                </div>
-                <a href="{% url 'cierre_caja' %}" class="stretched-link"></a>
-            </div>
-        </div>
-    </div>
 
-    <!-- Tarjetas de Acceso a Módulos -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <h4 class="mb-3"><i class="bi bi-grid"></i> Módulos del Sistema</h4>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-display fs-1 text-success"></i>
-                    <h5 class="mt-2">Estaciones</h5>
-                    <p class="small text-muted">Control de PCs del cyber</p>
-                    <a href="{% url 'dashboard_estaciones' %}" class="btn btn-sm btn-success">Acceder</a>
-                </div>
+        <!-- Últimos Pedidos de Sublimación -->
+        <div class="lg:col-span-2 glass-card rounded-2xl overflow-hidden">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center">
+                <h3 class="text-white font-bold text-lg">Pedidos de Sublimación</h3>
+                <a href="{% url 'sublimacion_dashboard' %}" class="text-purple-400 text-xs font-bold uppercase tracking-widest hover:underline">Gestionar todos</a>
             </div>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-cup-straw fs-1 text-primary"></i>
-                    <h5 class="mt-2">Sublimación</h5>
-                    <p class="small text-muted">Pedidos y diseños</p>
-                    <a href="{% url 'sublimacion_dashboard' %}" class="btn btn-sm btn-primary">Acceder</a>
+            <div class="divide-y divide-white/5">
+                {% for pedido in ultimos_pedidos|slice:":3" %}
+                <div class="p-5 hover:bg-white/5 transition-all cursor-pointer" onclick="window.location.href='{% url 'sublimacion_dashboard' %}'"> 
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                                <span class="material-symbols-outlined text-purple-400">apparel</span>
+                            </div>
+                            <div>
+                                <p class="font-bold text-white">{{ pedido.producto.nombre|default:"Pedido" }}</p>
+                                <p class="text-xs text-white/40">Cliente: <span class="text-white/60">{{ pedido.nombre_cliente|default:"Cliente" }}</span></p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase 
+                                {% if pedido.estado == 'pendiente' %}bg-amber-500/10 text-amber-500 border border-amber-500/20
+                                {% elif pedido.estado == 'produccion' %}bg-purple-500/10 text-purple-400 border border-purple-500/20
+                                {% elif pedido.estado == 'listo' %}bg-green-500/10 text-green-500 border border-green-500/20
+                                {% else %}bg-slate-500/10 text-slate-400 border border-slate-500/20{% endif %}">
+                                {{ pedido.get_estado_display|default:"Pendiente" }}
+                            </span>
+                            <p class="text-[10px] text-white/30 mt-1 font-bold uppercase tracking-tighter">Sincronizado: hace poco</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-box-seam fs-1 text-warning"></i>
-                    <h5 class="mt-2">Inventario</h5>
-                    <p class="small text-muted">Insumos y auditorías</p>
-                    <a href="{% url 'dashboard_inventario' %}" class="btn btn-sm btn-warning">Acceder</a>
+                {% empty %}
+                <div class="p-8 text-center text-white/40">
+                    No hay pedidos registrados
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-3">
-            <div class="card text-center shadow-sm">
-                <div class="card-body">
-                    <i class="bi bi-graph-up fs-1 text-info"></i>
-                    <h5 class="mt-2">Reportes</h5>
-                    <p class="small text-muted">Estadísticas y cierres</p>
-                    <a href="{% url 'reporte_ventas' %}" class="btn btn-sm btn-info">Acceder</a>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let chart;
+
+    function cargarGrafico(periodo = 'semanal') {
+        fetch(`/api/ventas-data/?periodo=${periodo}`)
+            .then(response => response.json())
+            .then(data => {
+                if (chart) chart.destroy();
+                const ctx = document.getElementById('ventasChart').getContext('2d');
+                
+                let labels, valores;
+                if (periodo === 'semanal') {
+                    labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+                    valores = data.ventas || [0, 0, 0, 0, 0, 0, 0];
+                } else {
+                    labels = data.meses || ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
+                    valores = data.ventas || [0, 0, 0, 0, 0, 0];
+                }
+                
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Ingresos (Bs)',
+                            data: valores,
+                            backgroundColor: 'rgba(157, 80, 255, 0.6)',
+                            borderRadius: 8,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { 
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#fff' }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                ticks: { color: '#fff' }
+                            }
+                        }
+                    }
+                });
+                
+                // Actualizar botones
+                document.getElementById('btnSemanal').className = periodo === 'semanal' ? 'px-4 py-2 bg-purple-500 text-white text-xs font-bold rounded-lg' : 'px-4 py-2 bg-white/5 text-white/60 text-xs font-bold rounded-lg hover:bg-purple-500/20 transition';
+                document.getElementById('btnMensual').className = periodo === 'mensual' ? 'px-4 py-2 bg-purple-500 text-white text-xs font-bold rounded-lg' : 'px-4 py-2 bg-white/5 text-white/60 text-xs font-bold rounded-lg hover:bg-purple-500/20 transition';
+            })
+            .catch(() => {
+                // Si falla la API, mostrar datos de ejemplo
+                if (chart) chart.destroy();
+                const ctx = document.getElementById('ventasChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                        datasets: [{
+                            label: 'Ingresos (Bs)',
+                            data: [0, 0, 0, 0, 0, 0, 0],
+                            backgroundColor: 'rgba(157, 80, 255, 0.6)',
+                            borderRadius: 8,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { 
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#fff' }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                ticks: { color: '#fff' }
+                            }
+                        }
+                    }
+                });
+            });
+    }
+
+    cargarGrafico('semanal');
+</script>
 {% endblock %}

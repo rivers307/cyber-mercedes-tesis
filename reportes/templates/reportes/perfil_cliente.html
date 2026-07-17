@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil - Cyber Comunal Mercedes{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'panel_cliente' %}" class="text-primary hover:underline flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Volver a mi panel
+        </a>
+    </div>
+
+    <div class="glass-card rounded-2xl p-8">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-accent-purple rounded-full flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-4xl text-white">person</span>
+            </div>
+            <h2 class="text-2xl font-bold text-white">{{ user.username }}</h2>
+            <p class="text-white/40 text-sm">{{ user.rol|default:"Cliente" }}</p>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-white/60 text-sm mb-2">Nombre de usuario</label>
+                <input type="text" value="{{ user.username }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" disabled>
+                <p class="text-[10px] text-white/30 mt-1">El nombre de usuario no se puede cambiar</p>
+            </div>
+
+            <div>
+                <label class="block text-white/60 text-sm mb-2">Nombre</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50">
+            </div>
+
+            <div>
+                <label class="block text-white/60 text-sm mb-2">Apellido</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50">
+            </div>
+
+            <div>
+                <label class="block text-white/60 text-sm mb-2">Correo electrónico</label>
+                <input type="email" name="email" value="{{ user.email }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50">
+            </div>
+
+            {% if user.telefono is not None %}
+            <div>
+                <label class="block text-white/60 text-sm mb-2">Teléfono</label>
+                <input type="text" name="telefono" value="{{ user.telefono }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50" placeholder="Ej: 0412-1234567">
+            </div>
+            {% endif %}
+
+            <button type="submit" class="w-full bg-gradient-to-r from-primary to-accent-purple text-white font-bold py-3 rounded-xl mt-4 hover:opacity-90 transition-all">
+                Actualizar Perfil
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-white/30 text-xs">Miembro desde: {{ user.date_joined|date:"d/m/Y" }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

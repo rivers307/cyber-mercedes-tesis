@@ -2,15 +2,49 @@ from django.db import models
 from django.contrib.auth.models import User
 from usuarios.models import Usuario
 from datetime import datetime
+from decimal import Decimal
+
 
 class Producto(models.Model):
     """Productos disponibles para sublimación"""
     
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50, default='Taza', help_text="Ej: Taza, Camisa, Gorra, Llavero, Termo...")
-    precio_base = models.DecimalField(max_digits=8, decimal_places=2)
+    
+    # ⭐ Precio en USD (se ingresa manualmente)
+    precio_usd = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=0,
+        help_text="Precio en dólares (USD) - se usará para calcular el precio en Bs según la tasa del día"
+    )
+    
+    # Precio en Bs (se calcula automáticamente al guardar)
+    precio_base = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=0,
+        help_text="Precio en Bs (calculado automáticamente según la tasa de cambio)"
+    )
+    
     stock = models.IntegerField(default=0)
     stock_minimo = models.IntegerField(default=5, help_text="Stock mínimo para alerta")
+    
+    def precio_bs(self):
+        """Calcula el precio en Bs según la tasa de cambio actual"""
+        from reportes.models import TasaCambio
+        # ✅ Convertir a Decimal por si acaso es una cadena
+        precio_usd = Decimal(str(self.precio_usd))
+        tasa = TasaCambio.objects.first()
+        if tasa:
+            return precio_usd * tasa.tasa
+        # Fallback si no hay tasa registrada
+        return precio_usd * Decimal('60')
+    
+    def save(self, *args, **kwargs):
+        """Actualiza precio_base en Bs antes de guardar"""
+        self.precio_base = self.precio_bs()
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.nombre} - {self.tipo}"
@@ -18,6 +52,7 @@ class Producto(models.Model):
     class Meta:
         verbose_name = "Producto"
         verbose_name_plural = "Productos"
+
 
 class Pedido(models.Model):
     """Pedidos de sublimación"""
@@ -32,7 +67,9 @@ class Pedido(models.Model):
     
     # Datos del cliente
     nombre_cliente = models.CharField(max_length=100)
-    telefono = models.CharField(max_length=15, blank=True)
+    telefono_cliente = models.CharField(max_length=20, blank=True, null=True, verbose_name="Teléfono del cliente")
+    id_cliente = models.CharField(max_length=30, blank=True, null=True, verbose_name="ID / RIF del cliente")
+    direccion_cliente = models.TextField(blank=True, null=True, verbose_name="Dirección del cliente")
     
     # Datos del pedido
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
@@ -45,12 +82,27 @@ class Pedido(models.Model):
     fecha_entrega = models.DateTimeField(null=True, blank=True)
     
     # Pagos
-    precio_total = models.DecimalField(max_digits=8, decimal_places=2)
+    precio_total = models.DecimalField(max_digits=8, decimal_places=2, help_text="Total en Bs")
     abono = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    
+    # ⭐ Auditoría de precios
+    precio_usd_unitario = models.DecimalField(
+        max_digits=8, decimal_places=2, 
+        default=0,
+        help_text="Precio unitario en USD al momento del pedido"
+    )
+    tasa_usada = models.DecimalField(
+        max_digits=10, decimal_places=2, 
+        default=0,
+        help_text="Tasa de cambio Bs/USD usada al momento del pedido"
+    )
     
     # Usuario que registró
     registrado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     
+    archivo_diseno = models.FileField(upload_to='disenos/', blank=True, null=True, verbose_name="Archivo de diseño")
+    notas_produccion = models.TextField(blank=True, null=True, help_text="Parámetros de producción: temperatura, tiempo, presión, etc.")
+
     def saldo_pendiente(self):
         return self.precio_total - self.abono
     
@@ -61,6 +113,7 @@ class Pedido(models.Model):
         verbose_name = "Pedido"
         verbose_name_plural = "Pedidos"
         ordering = ['-fecha_pedido']
+
 
 class HistorialEstado(models.Model):
     """Historial de cambios de estado del pedido"""

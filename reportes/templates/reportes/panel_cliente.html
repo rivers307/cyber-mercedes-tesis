@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Panel - Cyber Comunal Mercedes{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div>
+        <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+            <a href="{% url 'dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+            <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+            <span class="text-primary">Mi Panel</span>
+        </nav>
+        <h2 class="text-3xl font-extrabold text-white tracking-tight">Mi Panel</h2>
+        <p class="text-on-surface-variant mt-1">Bienvenido, {{ user.username }}</p>
+    </div>
+
+    <!-- Tarjetas de resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <span class="material-symbols-outlined text-3xl text-primary">receipt</span>
+            <h3 class="text-2xl font-bold text-white mt-2">{{ pedidos|length }}</h3>
+            <p class="text-white/50 text-sm">Total Pedidos</p>
+        </div>
+        <div class="glass-card p-6 rounded-2xl text-center border-l-4 border-amber-500">
+            <span class="material-symbols-outlined text-3xl text-amber-400">pending</span>
+            <h3 class="text-2xl font-bold text-amber-400 mt-2">
+                {{ pedidos|dictsortreversed:"estado"|length }}
+            </h3>
+            <p class="text-white/50 text-sm">En Proceso</p>
+        </div>
+        <div class="glass-card p-6 rounded-2xl text-center border-l-4 border-green-500">
+            <span class="material-symbols-outlined text-3xl text-green-400">check_circle</span>
+            <h3 class="text-2xl font-bold text-green-400 mt-2">
+                {{ pedidos|dictsortreversed:"estado"|length }}
+            </h3>
+            <p class="text-white/50 text-sm">Entregados</p>
+        </div>
+    </div>
+
+    <!-- Mis Pedidos -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">receipt</span>
+                Mis Pedidos de Sublimación
+            </h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-white/5">
+                    <tr class="text-[10px] font-bold uppercase tracking-widest text-white/40 border-b border-white/10">
+                        <th class="px-6 py-5">ID</th>
+                        <th class="px-6 py-5">Producto</th>
+                        <th class="px-6 py-5 text-center">Cantidad</th>
+                        <th class="px-6 py-5 text-right">Total</th>
+                        <th class="px-6 py-5">Estado</th>
+                        <th class="px-6 py-5">Fecha</th>
+                        <th class="px-6 py-5 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for pedido in pedidos %}
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-5 text-primary font-mono text-sm">#{{ pedido.id }}</td>
+                        <td class="px-6 py-5 text-white">{{ pedido.producto.nombre }}</td>
+                        <td class="px-6 py-5 text-center text-white">{{ pedido.cantidad }}</td>
+                        <td class="px-6 py-5 text-right text-white">Bs {{ pedido.precio_total }}</td>
+                        <td class="px-6 py-5">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider 
+                                {% if pedido.estado == 'pendiente' %}bg-amber-500/20 text-amber-400 border border-amber-500/30
+                                {% elif pedido.estado == 'diseño' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                                {% elif pedido.estado == 'produccion' %}bg-purple-500/20 text-purple-400 border border-purple-500/30
+                                {% elif pedido.estado == 'listo' %}bg-green-500/20 text-green-400 border border-green-500/30
+                                {% elif pedido.estado == 'entregado' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                                {% else %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}">
+                                {{ pedido.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-5 text-white/60 text-sm">{{ pedido.fecha_pedido|date:"d/m/Y" }}</td>
+                        <td class="px-6 py-5 text-right">
+                            <a href="{% url 'detalle_pedido_cliente' pedido.id %}" class="px-4 py-2 bg-primary/20 border border-primary/30 text-primary text-[10px] font-black rounded-lg hover:bg-primary hover:text-white transition-all uppercase tracking-widest inline-block">
+                                Ver Detalle
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center text-white/40">
+                            No tienes pedidos registrados. Visita el cyber para realizar tu primer pedido.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <a href="{% url 'perfil_cliente' %}" class="glass-card p-6 rounded-2xl flex items-center justify-between group hover:bg-white/5 transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">person</span>
+                </div>
+                <div>
+                    <p class="text-white font-bold">Mi Perfil</p>
+                    <p class="text-sm text-white/40">Editar mis datos personales</p>
+                </div>
+            </div>
+            <span class="material-symbols-outlined text-white/40 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+        </a>
+        <a href="{% url 'dashboard' %}" class="glass-card p-6 rounded-2xl flex items-center justify-between group hover:bg-white/5 transition-all">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">dashboard</span>
+                </div>
+                <div>
+                    <p class="text-white font-bold">Dashboard</p>
+                    <p class="text-sm text-white/40">Volver al inicio</p>
+                </div>
+            </div>
+            <span class="material-symbols-outlined text-white/40 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

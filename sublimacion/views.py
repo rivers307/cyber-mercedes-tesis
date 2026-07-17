@@ -5,22 +5,27 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Producto, Pedido, HistorialEstado
+from .forms import PedidoForm
 from datetime import datetime
 import json
+from usuarios.decorators import empleado_required, admin_required
+from reportes.utils import registrar_auditoria
 
-@login_required
+
+# ========== LISTA DE PEDIDOS ==========
+@empleado_required
 def lista_pedidos(request):
-    """Lista todos los pedidos"""
     pedidos = Pedido.objects.all()
     return render(request, 'sublimacion/lista_pedidos.html', {
         'pedidos': pedidos,
         'section': 'lista'
     })
 
-@login_required
+
+# ========== DASHBOARD ==========
+@empleado_required
 def dashboard_pedidos(request):
-    """Dashboard principal de sublimación"""
-    pedidos_recientes = Pedido.objects.all()[:10]
+    pedidos_recientes = Pedido.objects.all().order_by('-fecha_pedido')[:10]
     estadisticas = {
         'pendientes': Pedido.objects.filter(estado='pendiente').count(),
         'diseño': Pedido.objects.filter(estado='diseño').count(),
@@ -28,81 +33,99 @@ def dashboard_pedidos(request):
         'listos': Pedido.objects.filter(estado='listo').count(),
         'entregados': Pedido.objects.filter(estado='entregado').count(),
     }
-    
+    productos = Producto.objects.all()
+    pedido_actual = None
+    pedido_id = request.GET.get('pedido')
+    if pedido_id:
+        pedido_actual = get_object_or_404(Pedido, id=pedido_id)
     return render(request, 'sublimacion/dashboard.html', {
         'pedidos_recientes': pedidos_recientes,
         'estadisticas': estadisticas,
-        'section': 'dashboard'
+        'productos': productos,
+        'pedido_actual': pedido_actual,
     })
 
-@login_required
+
+# ========== CREAR PEDIDO ==========
+@empleado_required
+@registrar_auditoria(
+    accion='crear',
+    modulo='Sublimación - Pedidos',
+    obtener_descripcion=lambda r, **k: f"Creó pedido - Cliente: {r.POST.get('nombre_cliente', '')} - Producto: {r.POST.get('producto', '')}"
+)
 def crear_pedido(request):
-    """Crear un nuevo pedido"""
     if request.method == 'POST':
-        producto_id = request.POST.get('producto')
-        cantidad = int(request.POST.get('cantidad', 1))
-        nombre_cliente = request.POST.get('nombre_cliente')
-        telefono = request.POST.get('telefono', '')
-        especificaciones = request.POST.get('especificaciones', '')
-        abono = float(request.POST.get('abono', 0))
-        
-        producto = get_object_or_404(Producto, id=producto_id)
-        precio_total = float(producto.precio_base) * cantidad
-        
-        # Verificar stock
-        if producto.stock < cantidad:
-            messages.error(request, f'Stock insuficiente. Solo hay {producto.stock} unidades')
-            return redirect('crear_pedido_form')
-        
-        # Crear pedido
-        pedido = Pedido.objects.create(
-            nombre_cliente=nombre_cliente,
-            telefono=telefono,
-            producto=producto,
-            cantidad=cantidad,
-            especificaciones=especificaciones,
-            precio_total=precio_total,
-            abono=abono,
-            registrado_por=request.user
-        )
-        
-        # Reducir stock
-        producto.stock -= cantidad
-        producto.save()
-        
-        # ✅ Si hay abono inicial, registrar ingreso
-        if abono > 0:
-            from reportes.models import Ingreso
-            Ingreso.objects.create(
-                tipo='sublimacion_abono',
-                monto=Decimal(str(abono)),
-                descripcion=f'Abono inicial pedido #{pedido.id} - {nombre_cliente}',
-                registrado_por=request.user,
-                pedido_relacionado=pedido
-            )
-        
-        messages.success(request, f'Pedido #{pedido.id} creado exitosamente')
-        return redirect('detalle_pedido', pedido.id)
+        form = PedidoForm(request.POST, request.FILES)
+        if form.is_valid():
+            pedido = form.save(commit=False)
+            pedido.registrado_por = request.user
+            
+            producto = pedido.producto
+            if producto.stock < pedido.cantidad:
+                messages.error(request, f'Stock insuficiente. Solo hay {producto.stock} unidades')
+                return render(request, 'sublimacion/crear_pedido.html', {'form': form, 'productos': Producto.objects.all()})
+            
+            # Calcular precio total usando precio_usd y tasa actual
+            from reportes.models import TasaCambio
+            tasa = TasaCambio.objects.first()
+            if tasa:
+                tasa_valor = tasa.tasa
+            else:
+                tasa_valor = Decimal('60')
+            
+            pedido.precio_usd_unitario = producto.precio_usd
+            pedido.tasa_usada = tasa_valor
+            pedido.precio_total = producto.precio_usd * pedido.cantidad * tasa_valor
+            
+            pedido.save()
+            producto.stock -= pedido.cantidad
+            producto.save()
+            
+            if pedido.abono > 0:
+                from reportes.models import Ingreso
+                Ingreso.objects.create(
+                    tipo='sublimacion_abono',
+                    monto=pedido.abono,
+                    descripcion=f'Abono inicial pedido #{pedido.id} - {pedido.nombre_cliente}',
+                    registrado_por=request.user,
+                    pedido_relacionado=pedido
+                )
+            
+            messages.success(request, f'Pedido #{pedido.id} creado exitosamente')
+            return redirect('detalle_pedido', pedido.id)
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = PedidoForm()
     
-    # GET: Mostrar formulario
     productos = Producto.objects.all()
     return render(request, 'sublimacion/crear_pedido.html', {
+        'form': form,
         'productos': productos,
         'section': 'crear'
     })
 
-@login_required
+
+# ========== FORMULARIO DE CREACIÓN (GET) ==========
+@empleado_required
 def crear_pedido_form(request):
-    """Formulario para crear pedido"""
+    storage = messages.get_messages(request)
+    storage.used = True
+
+    form = PedidoForm()
     productos = Producto.objects.all()
     return render(request, 'sublimacion/crear_pedido.html', {
+        'form': form,
         'productos': productos,
         'section': 'crear'
     })
 
-@login_required
+
+# ========== DETALLE DEL PEDIDO ==========
+@empleado_required
 def detalle_pedido(request, id):
-    """Ver detalles de un pedido"""
     pedido = get_object_or_404(Pedido, id=id)
     historial = pedido.historial.all()
     return render(request, 'sublimacion/detalle_pedido.html', {
@@ -111,10 +134,25 @@ def detalle_pedido(request, id):
         'saldo': pedido.saldo_pendiente()
     })
 
-@login_required
+
+# ========== IMPRIMIR PEDIDO ==========
+@empleado_required
+def imprimir_pedido(request, id):
+    pedido = get_object_or_404(Pedido, id=id)
+    return render(request, 'sublimacion/imprimir_pedido.html', {
+        'pedido': pedido,
+    })
+
+
+# ========== CAMBIAR ESTADO ==========
 @csrf_exempt
+@empleado_required
+@registrar_auditoria(
+    accion='cambiar_estado',
+    modulo='Sublimación - Pedidos',
+    obtener_descripcion=lambda r, id, **k: f"Cambió estado del pedido #{id} a {r.POST.get('estado', '')}"
+)
 def cambiar_estado(request, id):
-    """Cambiar estado del pedido - registra ingreso cuando se entrega"""
     from decimal import Decimal
     from reportes.models import Ingreso
     from django.utils import timezone
@@ -126,7 +164,6 @@ def cambiar_estado(request, id):
         if nuevo_estado and nuevo_estado != pedido.estado:
             estado_anterior = pedido.estado
             
-            # Registrar en historial
             HistorialEstado.objects.create(
                 pedido=pedido,
                 estado_anterior=estado_anterior,
@@ -136,7 +173,6 @@ def cambiar_estado(request, id):
             
             pedido.estado = nuevo_estado
             
-            # ✅ Cuando se entrega, registrar el pago final (saldo restante)
             if nuevo_estado == 'entregado' and estado_anterior != 'entregado':
                 pedido.fecha_entrega = timezone.now()
                 saldo_restante = pedido.saldo_pendiente()
@@ -157,9 +193,15 @@ def cambiar_estado(request, id):
     
     return redirect('detalle_pedido', id)
 
-@login_required
+
+# ========== REGISTRAR ABONO ==========
+@empleado_required
+@registrar_auditoria(
+    accion='abono',
+    modulo='Sublimación - Pagos',
+    obtener_descripcion=lambda r, id, **k: f"Registró abono de Bs {r.POST.get('monto', 0)} al pedido #{id}"
+)
 def registrar_abono(request, id):
-    """Registrar un abono al pedido"""
     from decimal import Decimal
     from reportes.models import Ingreso
     
@@ -173,7 +215,6 @@ def registrar_abono(request, id):
                 pedido.abono += monto
                 pedido.save()
                 
-                # ✅ CORREGIDO: tipo 'sublimacion_abono' en lugar de 'abono'
                 Ingreso.objects.create(
                     tipo='sublimacion_abono',
                     monto=monto,
@@ -192,22 +233,34 @@ def registrar_abono(request, id):
     
     return redirect('detalle_pedido', id)
 
-@login_required
+
+# ========== GESTIÓN DE PRODUCTOS ==========
+@admin_required
+@registrar_auditoria(
+    accion='crear',
+    modulo='Sublimación - Productos',
+    obtener_descripcion=lambda r, **k: f"Creó producto {r.POST.get('nombre', '')} - Tipo: {r.POST.get('tipo', '')} - USD: {r.POST.get('precio_usd', '')}"
+)
 def gestionar_productos(request):
-    """Gestionar productos (CRUD)"""
     productos = Producto.objects.all()
     
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
         tipo = request.POST.get('tipo')
-        precio_base = request.POST.get('precio_base')
+        precio_usd = request.POST.get('precio_usd')
         stock = request.POST.get('stock', 0)
         stock_minimo = request.POST.get('stock_minimo', 5)
+        
+        # Convertir a Decimal
+        try:
+            precio_usd = Decimal(precio_usd.replace(',', '.'))
+        except:
+            precio_usd = Decimal('0')
         
         Producto.objects.create(
             nombre=nombre,
             tipo=tipo,
-            precio_base=precio_base,
+            precio_usd=precio_usd,
             stock=stock,
             stock_minimo=stock_minimo
         )
@@ -219,14 +272,26 @@ def gestionar_productos(request):
         'section': 'productos'
     })
 
-@login_required
+
+# ========== EDITAR PRODUCTO ==========
+@admin_required
+@registrar_auditoria(
+    accion='editar',
+    modulo='Sublimación - Productos',
+    obtener_descripcion=lambda r, id, **k: f"Editó producto #{id} - {r.POST.get('nombre', '')} - USD: {r.POST.get('precio_usd', '')}"
+)
 def editar_producto(request, id):
-    """Editar un producto"""
     if request.method == 'POST':
         producto = get_object_or_404(Producto, id=id)
         producto.nombre = request.POST.get('nombre')
         producto.tipo = request.POST.get('tipo')
-        producto.precio_base = request.POST.get('precio_base')
+        precio_usd = request.POST.get('precio_usd')
+        
+        try:
+            producto.precio_usd = Decimal(precio_usd.replace(',', '.'))
+        except:
+            producto.precio_usd = Decimal('0')
+        
         producto.stock = request.POST.get('stock')
         producto.stock_minimo = request.POST.get('stock_minimo')
         producto.save()
@@ -235,9 +300,15 @@ def editar_producto(request, id):
     
     return redirect('gestionar_productos')
 
-@login_required
+
+# ========== ELIMINAR PRODUCTO ==========
+@admin_required
+@registrar_auditoria(
+    accion='eliminar',
+    modulo='Sublimación - Productos',
+    obtener_descripcion=lambda r, id, **k: f"Eliminó producto #{id} - {r.POST.get('nombre', '')}"
+)
 def eliminar_producto(request, id):
-    """Eliminar un producto"""
     if request.method == 'POST':
         producto = get_object_or_404(Producto, id=id)
         producto.delete()
@@ -245,3 +316,67 @@ def eliminar_producto(request, id):
         return redirect('gestionar_productos')
     
     return redirect('gestionar_productos')
+
+
+# ========== ELIMINAR PEDIDO ==========
+@admin_required
+@registrar_auditoria(
+    accion='eliminar',
+    modulo='Sublimación - Pedidos',
+    obtener_descripcion=lambda r, id, **k: f"Eliminó pedido #{id} - Motivo: {r.POST.get('motivo', 'No especificado')}"
+)
+def eliminar_pedido(request, id):
+    from inventario.models import Auditoria
+    
+    if request.method != 'POST':
+        return redirect('lista_pedidos')
+    
+    pedido = get_object_or_404(Pedido, id=id)
+    
+    password = request.POST.get('password')
+    motivo = request.POST.get('motivo', '')
+    
+    if not request.user.check_password(password):
+        messages.error(request, '❌ Contraseña incorrecta. No se pudo eliminar el pedido.')
+        return redirect('lista_pedidos')
+    
+    if not motivo:
+        messages.error(request, '❌ Debes especificar un motivo para eliminar el pedido.')
+        return redirect('lista_pedidos')
+    
+    datos_pedido = {
+        'id': pedido.id,
+        'cliente': pedido.nombre_cliente,
+        'producto': pedido.producto.nombre,
+        'cantidad': pedido.cantidad,
+        'total': str(pedido.precio_total),
+        'estado': pedido.estado,
+        'fecha': pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M')
+    }
+    
+    pedido.delete()
+    
+    Auditoria.objects.create(
+        usuario=request.user,
+        accion='eliminar',
+        modulo='Sublimación - Pedidos',
+        descripcion=f'Eliminó el pedido #{datos_pedido["id"]} - Cliente: {datos_pedido["cliente"]} - Producto: {datos_pedido["producto"]} - Motivo: {motivo}',
+        ip_origen=request.META.get('REMOTE_ADDR', 'Local'),
+        registro_id=datos_pedido["id"],
+        registro_nombre=f'Pedido #{datos_pedido["id"]} - {datos_pedido["cliente"]}'
+    )
+    
+    messages.success(request, f'✅ Pedido #{datos_pedido["id"]} eliminado correctamente.')
+    return redirect('lista_pedidos')
+
+
+# ========== NOTAS TÉCNICAS ==========
+@empleado_required
+def guardar_notas_produccion(request, id):
+    pedido = get_object_or_404(Pedido, id=id)
+    if request.method == 'POST':
+        notas = request.POST.get('notas_produccion', '')
+        pedido.notas_produccion = notas
+        pedido.save()
+        messages.success(request, "Notas de producción guardadas correctamente.")
+    return redirect('detalle_pedido', id=pedido.id)

@@ -1,140 +1,216 @@
 {% extends 'base.html' %}
 
-{% block title %}Activos Fijos - Cyber Mercedes{% endblock %}
+{% block title %}Activos Fijos - Cyber Comunal Mercedes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
-            ← Volver a Inventario
-        </a>
-    </div>
-
-    <!-- Tarjetas de Estadísticas de Operatividad -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center bg-success text-white">
-                <div class="card-body">
-                    <h2>{{ operativos }}</h2>
-                    <small>✅ Operativos</small>
-                </div>
-            </div>
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'dashboard_inventario' %}" class="hover:text-primary transition-colors">Inventario</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Activos Fijos</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Activos Fijos</h2>
+            <p class="text-on-surface-variant mt-1">Gestión de computadoras, equipos, mobiliario y hardware del cyber.</p>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center bg-warning text-dark">
-                <div class="card-body">
-                    <h2>{{ parciales }}</h2>
-                    <small>⚠️ Parciales</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center bg-danger text-white">
-                <div class="card-body">
-                    <h2>{{ danados }}</h2>
-                    <small>🔧 Dañados</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center bg-info text-white">
-                <div class="card-body">
-                    <h2>{{ porcentaje_operatividad|floatformat:1 }}%</h2>
-                    <small>📊 Operatividad</small>
-                </div>
-            </div>
+        <div class="flex gap-3">
+            <a href="{% url 'dashboard_inventario' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver
+            </a>
         </div>
     </div>
 
-    <!-- Formulario para agregar activo -->
-    <div class="card mb-4">
-        <div class="card-header bg-success text-white">
-            <h4><i class="bi bi-plus-circle"></i> Registrar Nuevo Activo</h4>
+    <!-- Tarjetas de estadísticas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass-card p-6 rounded-2xl">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">inventory</span>
+                </div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Total Activos</p>
+            </div>
+            <h3 class="text-3xl font-bold text-white">{{ total }}</h3>
         </div>
-        <div class="card-body">
-            <form method="POST" class="row g-3">
+        <div class="glass-card p-6 rounded-2xl">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-green-400">check_circle</span>
+                </div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Operativos</p>
+            </div>
+            <h3 class="text-3xl font-bold text-green-400">{{ operativos }}</h3>
+        </div>
+        <div class="glass-card p-6 rounded-2xl">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-red-400">build</span>
+                </div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Dañados</p>
+            </div>
+            <h3 class="text-3xl font-bold text-red-400">{{ danados }}</h3>
+        </div>
+        <div class="glass-card p-6 rounded-2xl">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-blue-400">speed</span>
+                </div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Operatividad</p>
+            </div>
+            <h3 class="text-3xl font-bold text-white">{{ porcentaje_operatividad|floatformat:1 }}%</h3>
+            <div class="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r from-primary to-green-400" style="width: {{ porcentaje_operatividad }}%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario para agregar nuevo activo -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">add_box</span>
+                Registrar Nuevo Activo
+            </h3>
+        </div>
+        <div class="p-6">
+            <form method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {% csrf_token %}
-                <div class="col-md-3">
-                    <input type="text" name="codigo" class="form-control" placeholder="Código (ej: PC-001)" required>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Código</label>
+                    <input type="text" name="codigo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm mt-1" placeholder="Ej: PC-001" required>
                 </div>
-                <div class="col-md-3">
-                    <input type="text" name="nombre" class="form-control" placeholder="Nombre" required>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nombre</label>
+                    <input type="text" name="nombre" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm mt-1" placeholder="Ej: Computadora Gaming" required>
                 </div>
-                <div class="col-md-2">
-                    <select name="tipo" class="form-select" required>
-                        <option value="computadora">Computadora</option>
-                        <option value="monitor">Monitor</option>
-                        <option value="teclado">Teclado</option>
-                        <option value="mouse">Mouse</option>
-                        <option value="router">Router</option>
-                        <option value="impresora">Impresora</option>
-                        <option value="mobiliario">Mobiliario</option>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tipo</label>
+                    <select name="tipo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm mt-1" required>
+                        <option value="computadora">🖥️ Computadora</option>
+                        <option value="monitor">🖥️ Monitor</option>
+                        <option value="teclado">⌨️ Teclado</option>
+                        <option value="mouse">🖱️ Mouse</option>
+                        <option value="router">📡 Router</option>
+                        <option value="impresora">🖨️ Impresora</option>
+                        <option value="mobiliario">🪑 Mobiliario</option>
+                        <option value="otro">📦 Otro</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <select name="estado" class="form-select" required>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado</label>
+                    <select name="estado" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm mt-1" required>
                         <option value="operativo">✅ Operativo</option>
                         <option value="parcial">⚠️ Parcial</option>
                         <option value="dañado">🔧 Dañado</option>
                         <option value="obsoleto">📦 Obsoleto</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <input type="text" name="ubicacion" class="form-control" placeholder="Ubicación" required>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ubicación</label>
+                    <input type="text" name="ubicacion" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm mt-1" placeholder="Ej: Estación 1" required>
                 </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-success">Guardar Activo</button>
+                <div>
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Marca/Modelo</label>
+                    <input type="text" name="marca" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm mt-1">
+                </div>
+                <div class="md:col-span-3 flex justify-end gap-3">
+                    <button type="submit" class="bg-gradient-to-r from-primary to-accent-purple text-white px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/30 hover:opacity-90 transition-all">
+                        Guardar Activo
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Lista de Activos -->
-    <div class="card">
-        <div class="card-header bg-info text-white">
-            <h4><i class="bi bi-pc-display"></i> Lista de Activos Fijos</h4>
+    <!-- Tabla de activos existentes -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">inventory</span>
+                Lista de Activos Fijos
+            </h3>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Nombre</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                            <th>Ubicación</th>
-                            <th>Marca/Modelo</th>
-                            <th>Valor</th>
-                        </thead>
-                    <tbody>
-                        {% for activo in activos %}
-                        <tr class="{% if activo.estado == 'dañado' %}table-danger{% elif activo.estado == 'obsoleto' %}table-secondary{% endif %}">
-                            <td>{{ activo.codigo }}</td>
-                            <td>{{ activo.nombre }}</td>
-                            <td>{{ activo.get_tipo_display }}</td>
-                            <td>
-                                <span class="badge 
-                                    {% if activo.estado == 'operativo' %}bg-success
-                                    {% elif activo.estado == 'parcial' %}bg-warning
-                                    {% elif activo.estado == 'dañado' %}bg-danger
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ activo.get_estado_display }}
-                                </span>
-                            </td>
-                            <td>{{ activo.ubicacion }}</td>
-                            <td>{{ activo.marca }} {{ activo.modelo }}</td>
-                            <td>Bs {{ activo.valor_inicial }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center">No hay activos registrados</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white/5 text-[10px] uppercase tracking-widest text-slate-400 font-black border-b border-white/10">
+                        <th class="px-6 py-4">Código</th>
+                        <th class="px-6 py-4">Nombre</th>
+                        <th class="px-6 py-4">Tipo</th>
+                        <th class="px-6 py-4">Estado</th>
+                        <th class="px-6 py-4">Ubicación</th>
+                        <th class="px-6 py-4">Marca/Modelo</th>
+                        <th class="px-6 py-4">Valor</th>
+                        <th class="px-6 py-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for activo in activos %}
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 text-primary font-mono text-sm">{{ activo.codigo }}</td>
+                        <td class="px-6 py-4 text-white font-medium">{{ activo.nombre }}</td>
+                        <td class="px-6 py-4 text-slate-400">{{ activo.get_tipo_display }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider 
+                                {% if activo.estado == 'operativo' %}bg-green-500/10 text-green-500 border border-green-500/20
+                                {% elif activo.estado == 'parcial' %}bg-amber-500/10 text-amber-500 border border-amber-500/20
+                                {% elif activo.estado == 'dañado' %}bg-red-500/10 text-red-500 border border-red-500/20
+                                {% else %}bg-slate-500/10 text-slate-400 border border-slate-500/20{% endif %}">
+                                {{ activo.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-400">{{ activo.ubicacion }}</td>
+                        <td class="px-6 py-4 text-slate-400">{{ activo.marca }} {{ activo.modelo }}</td>
+                        <td class="px-6 py-4 text-white">Bs {{ activo.valor_inicial }}</td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <a href="{% url 'editar_activo' activo.id %}" class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black rounded-lg hover:bg-amber-500 hover:text-white transition-all uppercase tracking-widest inline-block">
+                                Editar
+                            </a>
+                            <button onclick="abrirModalEliminar({{ activo.id }}, '{{ activo.nombre }}')" class="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] font-black rounded-lg hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-6 py-8 text-center text-slate-400">No hay activos registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+<!-- Modal Eliminar -->
+<div id="modalEliminar" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="glass-card rounded-2xl p-8 w-full max-w-md mx-4">
+        <h3 class="text-2xl font-bold text-white mb-4">Confirmar Eliminación</h3>
+        <p class="text-white/60 mb-6">¿Estás seguro de eliminar el activo <strong id="eliminar_nombre" class="text-primary"></strong>?</p>
+        <form method="POST" action="" id="formEliminar">
+            {% csrf_token %}
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-xl text-sm font-black shadow-lg hover:opacity-90 transition-all">
+                    Eliminar
+                </button>
+                <button type="button" onclick="cerrarModalEliminar()" class="flex-1 py-3 bg-white/5 border border-white/10 text-white/60 rounded-xl text-sm font-black hover:bg-white/10 transition-all">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModalEliminar(id, nombre) {
+        document.getElementById('modalEliminar').classList.remove('hidden');
+        document.getElementById('formEliminar').action = `/inventario/activos/eliminar/${id}/`;
+        document.getElementById('eliminar_nombre').textContent = nombre;
+    }
+    function cerrarModalEliminar() {
+        document.getElementById('modalEliminar').classList.add('hidden');
+    }
+</script>
 {% endblock %}

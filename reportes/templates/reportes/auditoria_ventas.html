@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Auditoría de Ventas - Cyber Comunal Mercedes{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Auditoría de Ventas</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Auditoría de Ventas</h2>
+            <p class="text-on-surface-variant mt-1">Registro completo de todas las transacciones (Solo Admin)</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'exportar_auditoria_ventas_excel' %}" class="flex items-center gap-2 px-5 py-2.5 bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl text-sm font-bold hover:bg-green-500 hover:text-white transition-all">
+                <span class="material-symbols-outlined text-sm">download</span>
+                Excel
+            </a>
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="glass-card rounded-2xl p-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Desde</label>
+                <input type="date" name="fecha_desde" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm mt-1" value="{{ request.GET.fecha_desde }}">
+            </div>
+            <div>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Hasta</label>
+                <input type="date" name="fecha_hasta" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm mt-1" value="{{ request.GET.fecha_hasta }}">
+            </div>
+            <div>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tipo</label>
+                <select name="tipo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm mt-1">
+                    <option value="">Todos</option>
+                    {% for key, value in transacciones.model.TIPOS %}
+                    <option value="{{ key }}" {% if request.GET.tipo == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end gap-2">
+                <button type="submit" class="flex-1 bg-gradient-to-r from-primary to-accent-purple text-white px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/30 hover:opacity-90 transition-all">
+                    Filtrar
+                </button>
+                <a href="{% url 'auditoria_ventas' %}" class="px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Total Ventas</p>
+            <h3 class="text-2xl font-bold text-white mt-2">Bs {{ total_ventas|floatformat:2 }}</h3>
+        </div>
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Total Abonos</p>
+            <h3 class="text-2xl font-bold text-primary mt-2">Bs {{ total_abonos|floatformat:2 }}</h3>
+        </div>
+        <div class="glass-card p-6 rounded-2xl text-center">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Saldo Pendiente</p>
+            <h3 class="text-2xl font-bold text-amber-400 mt-2">Bs {{ saldo_pendiente|floatformat:2 }}</h3>
+        </div>
+    </div>
+
+    <!-- Tabla de transacciones -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">verified</span>
+                Transacciones
+            </h3>
+            <span class="text-xs text-white/40">{{ transacciones|length }} registros</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-white/5">
+                    <tr class="text-[10px] font-bold uppercase tracking-widest text-white/40 border-b border-white/10">
+                        <th class="px-6 py-5">Fecha</th>
+                        <th class="px-6 py-5">Tipo</th>
+                        <th class="px-6 py-5">Descripción</th>
+                        <th class="px-6 py-5 text-right">Monto</th>
+                        <th class="px-6 py-5">Método Pago</th>
+                        <th class="px-6 py-5">Registrado Por</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for t in transacciones %}
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-5 text-sm text-white/60">{{ t.fecha|date:"d/m/Y H:i" }}</td>
+                        <td class="px-6 py-5">
+                            <span class="px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
+                                {{ t.get_tipo_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-5 text-white/60">{{ t.descripcion|truncatechars:40 }}</td>
+                        <td class="px-6 py-5 text-right font-mono text-white">Bs {{ t.monto|floatformat:2 }}</td>
+                        <td class="px-6 py-5 text-white/60">{{ t.get_metodo_pago_display }}</td>
+                        <td class="px-6 py-5 text-white/60">{{ t.registrado_por.username }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-white/40">
+                            No hay transacciones registradas
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Tabulador de Precios - Cyber Comunal Mercedes{% endblock %}
+
+{% block content %}
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Tabulador de Precios</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Tabulador de Precios</h2>
+            <p class="text-on-surface-variant mt-1">Gestión de precios de servicios y tasa de cambio</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'reporte_ventas' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver a Ventas
+            </a>
+        </div>
+    </div>
+
+    <!-- Tasa de Cambio Actual -->
+    <div class="glass-card rounded-2xl p-6">
+        <div class="flex flex-wrap justify-between items-center gap-4">
+            <div>
+                <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">attach_money</span>
+                    Tasa de Cambio del Día
+                </h3>
+                <p class="text-white/40 text-sm mt-1">Valor del dólar en bolívares</p>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-center">
+                    <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Tasa Actual</p>
+                    <p class="text-3xl font-bold text-primary">
+                        {% if tasa %}
+                            Bs {{ tasa.tasa|floatformat:2 }}
+                        {% else %}
+                            <span class="text-amber-400 text-lg">⚠️ No configurada</span>
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-white/40 mt-1">
+                        {{ tasa.fecha|date:"d/m/Y"|default:"—" }}
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    {% if user.rol == 'admin' %}
+                    <button onclick="abrirModalTasa()" class="px-4 py-2 bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl text-sm font-bold hover:bg-amber-500 hover:text-white transition-all">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        Manual
+                    </button>
+                    <button onclick="actualizarTasaAPI()" class="px-4 py-2 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-xl text-sm font-bold hover:bg-blue-500 hover:text-white transition-all">
+                        <span class="material-symbols-outlined text-sm">cloud_sync</span>
+                        API
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% if not tasa %}
+        <div class="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 text-sm">
+            ⚠️ No hay tasa de cambio registrada. Los precios en Bs se mostrarán como 0.
+            {% if user.rol == 'admin' %}
+            <button onclick="abrirModalTasa()" class="ml-2 underline">Actualizar ahora</button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tabla de precios -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">price_change</span>
+                Precios de Servicios
+            </h3>
+            <span class="text-xs text-white/40">Precios en USD / Bs (con tasa del día)</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white/5 text-[10px] uppercase tracking-widest text-slate-400 font-black border-b border-white/10">
+                        <th class="px-6 py-4">Servicio</th>
+                        <th class="px-6 py-4">Precio (USD)</th>
+                        <th class="px-6 py-4">Precio (Bs)</th>
+                        <th class="px-6 py-4">Estado</th>
+                        <th class="px-6 py-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for precio in precios %}
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">{{ precio.servicio|slice:":1" }}</span>
+                                <span class="text-white font-medium">{{ precio.nombre_mostrar }}</span>
+                            </div>
+                            {% if precio.descripcion %}
+                            <p class="text-xs text-white/40 mt-1">{{ precio.descripcion }}</p>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-primary font-bold">$ {{ precio.precio_usd|floatformat:2 }}</td>
+                        <td class="px-6 py-4 font-bold text-white">
+                            {% if tasa %}
+                                Bs {{ precio.precio_bs|floatformat:2 }}
+                            {% else %}
+                                <span class="text-amber-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if precio.activo %}
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-green-500/20 text-green-400 border border-green-500/30">
+                                    Activo
+                                </span>
+                            {% else %}
+                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30">
+                                    Inactivo
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            {% if user.rol == 'admin' %}
+                            <button onclick="abrirModalEditar({{ precio.id }}, '{{ precio.nombre_mostrar|escapejs }}', {{ precio.precio_usd|floatformat:2 }})" 
+                                    class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-black rounded-lg hover:bg-amber-500 hover:text-white transition-all uppercase tracking-widest">
+                                Editar
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-white/40">
+                            <span class="material-symbols-outlined text-4xl">price_change</span>
+                            <p class="mt-2">No hay precios configurados.</p>
+                            {% if user.rol == 'admin' %}
+                            <a href="{% url 'admin:reportes_precioservicio_add' %}" class="text-primary hover:underline inline-flex items-center gap-1 mt-2">
+                                <span class="material-symbols-outlined text-sm">add</span> Agregar precios desde el panel de administración
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Nota informativa -->
+    <div class="glass-card p-4 rounded-xl border-l-4 border-primary">
+        <p class="text-sm text-white/60 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-sm">info</span>
+            Los precios en bolívares se calculan automáticamente usando la tasa de cambio del día.
+            Actualiza la tasa diariamente para mantener los precios correctos.
+        </p>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ===== MODAL: ACTUALIZAR TASA ===== -->
+<!-- ============================================================ -->
+<div id="modalTasa" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="glass-card rounded-2xl p-8 w-full max-w-md mx-4">
+        <h3 class="text-2xl font-bold text-white mb-6">Actualizar Tasa de Cambio</h3>
+        <form method="POST" action="{% url 'actualizar_tasa' %}">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-white/60 text-sm font-medium mb-2">Tasa Bs/USD *</label>
+                    <input type="number" name="tasa" step="0.01" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Ej: 65.50" required>
+                </div>
+                <input type="hidden" name="fuente" value="Manual">
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-xl text-sm font-black shadow-lg shadow-amber-500/30 hover:opacity-90 transition-all">
+                        Actualizar
+                    </button>
+                    <button type="button" onclick="cerrarModalTasa()" class="flex-1 py-3 bg-white/5 border border-white/10 text-white/60 rounded-xl text-sm font-black hover:bg-white/10 transition-all">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ===== MODAL: EDITAR PRECIO ===== -->
+<!-- ============================================================ -->
+<div id="modalEditar" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="glass-card rounded-2xl p-8 w-full max-w-md mx-4">
+        <h3 class="text-2xl font-bold text-white mb-6">Editar Precio</h3>
+        <form method="POST" action="{% url 'editar_precio' %}">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <input type="hidden" name="servicio_id" id="editServicioId">
+                <div>
+                    <label class="block text-white/60 text-sm font-medium mb-2">Nombre</label>
+                    <input type="text" name="nombre_mostrar" id="editNombre" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-primary/50 transition-all" required>
+                </div>
+                <div>
+                    <label class="block text-white/60 text-sm font-medium mb-2">Precio (USD) *</label>
+                    <input type="number" name="precio_usd" id="editPrecio" step="0.01" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-primary/50 transition-all" required>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-xl text-sm font-black shadow-lg shadow-amber-500/30 hover:opacity-90 transition-all">
+                        Guardar Cambios
+                    </button>
+                    <button type="button" onclick="cerrarModalEditar()" class="flex-1 py-3 bg-white/5 border border-white/10 text-white/60 rounded-xl text-sm font-black hover:bg-white/10 transition-all">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ===== JAVASCRIPT ===== -->
+<!-- ============================================================ -->
+<script>
+    function abrirModalTasa() {
+        document.getElementById('modalTasa').classList.remove('hidden');
+        // Limpiar campo de tasa
+        document.querySelector('#modalTasa input[name="tasa"]').value = '';
+    }
+    function cerrarModalTasa() {
+        document.getElementById('modalTasa').classList.add('hidden');
+    }
+
+    function abrirModalEditar(id, nombre, precio) {
+        document.getElementById('editServicioId').value = id;
+        document.getElementById('editNombre').value = nombre;
+        document.getElementById('editPrecio').value = precio;
+        document.getElementById('modalEditar').classList.remove('hidden');
+    }
+    function cerrarModalEditar() {
+        document.getElementById('modalEditar').classList.add('hidden');
+    }
+
+    function actualizarTasaAPI() {
+        if (confirm('¿Actualizar la tasa de cambio automáticamente desde la API?')) {
+            window.location.href = "{% url 'actualizar_tasa_api' %}";
+        }
+    }
+
+    // Cerrar modales con Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalTasa();
+            cerrarModalEditar();
+        }
+    });
+</script>
+{% endblock %}lock %}

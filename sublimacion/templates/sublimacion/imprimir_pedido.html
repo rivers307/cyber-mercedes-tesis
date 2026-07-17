@@ -1,0 +1,667 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nota de Entrega - Pedido #{{ pedido.id }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f0edf5;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .nota {
+            max-width: 800px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            padding: 40px 45px;
+            position: relative;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #7c3aed;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo-placeholder {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #7c3aed, #9d50ff);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .header-left h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+        
+        .header-left h1 span {
+            color: #7c3aed;
+        }
+        
+        .header-left .sub {
+            font-size: 11px;
+            color: #6b6b8a;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            margin-top: 2px;
+        }
+        
+        .header-right {
+            text-align: right;
+        }
+        
+        .header-right .nota-titulo {
+            font-size: 14px;
+            font-weight: 700;
+            color: #7c3aed;
+            background: #f0edf8;
+            padding: 6px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .header-right .numero {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-top: 4px;
+        }
+        
+        .local-info {
+            background: #f8f6fc;
+            border-radius: 10px;
+            padding: 14px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #4a4a6a;
+            border: 1px solid #ede6f8;
+        }
+        
+        .local-info .item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .local-info .item strong {
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+        
+        .seccion {
+            margin-bottom: 22px;
+        }
+        
+        .seccion-titulo {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #7c3aed;
+            border-bottom: 2px solid #ede6f8;
+            padding-bottom: 6px;
+            margin-bottom: 14px;
+        }
+        
+        .cliente-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 30px;
+            background: #faf8ff;
+            padding: 16px 20px;
+            border-radius: 10px;
+            border: 1px solid #ede6f8;
+        }
+        
+        .cliente-grid .campo {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .cliente-grid .campo .label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8a8aaa;
+        }
+        
+        .cliente-grid .campo .valor {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-top: 2px;
+        }
+        
+        .tramite-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            background: #faf8ff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: 1px solid #ede6f8;
+        }
+        
+        .tramite-grid .campo {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .tramite-grid .campo .label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8a8aaa;
+        }
+        
+        .tramite-grid .campo .valor {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-top: 2px;
+        }
+        
+        .tabla-productos {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .tabla-productos thead {
+            background: #f0edf8;
+        }
+        
+        .tabla-productos thead th {
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5a5a7a;
+            border-bottom: 2px solid #e0daf0;
+        }
+        
+        .tabla-productos thead th:last-child {
+            text-align: right;
+        }
+        
+        .tabla-productos tbody td {
+            padding: 12px 12px;
+            border-bottom: 1px solid #f0edf8;
+            color: #2d2d44;
+        }
+        
+        .tabla-productos tbody td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .tabla-productos tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .resumen-pago {
+            margin-top: 15px;
+            padding: 16px 20px;
+            background: #faf8ff;
+            border-radius: 10px;
+            border: 1px solid #ede6f8;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .resumen-pago .inner {
+            width: 260px;
+        }
+        
+        .resumen-pago .fila {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+            color: #3a3a5a;
+        }
+        
+        .resumen-pago .fila.total {
+            border-top: 2px solid #7c3aed;
+            margin-top: 4px;
+            padding-top: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a1a2e;
+        }
+        
+        .resumen-pago .fila.total .valor {
+            color: #7c3aed;
+            font-size: 18px;
+        }
+        
+        .estado-pedido {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #f0edf8;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .estado-pedido .label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6a6a8a;
+            letter-spacing: 0.5px;
+        }
+        
+        .estado-pedido .badge {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            background: #7c3aed;
+            color: white;
+        }
+        
+        .estado-pedido .badge.entregado {
+            background: #10b981;
+        }
+        
+        .estado-pedido .badge.pendiente {
+            background: #f59e0b;
+        }
+        
+        .estado-pedido .badge.produccion {
+            background: #8b5cf6;
+        }
+        
+        .estado-pedido .badge.listo {
+            background: #06b6d4;
+        }
+        
+        .estado-pedido .badge.cancelado {
+            background: #ef4444;
+        }
+        
+        .firmas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ede6f8;
+        }
+        
+        .firmas .firma-item {
+            text-align: center;
+        }
+        
+        .firmas .firma-item .linea {
+            border-bottom: 1px solid #1a1a2e;
+            height: 40px;
+            margin-bottom: 6px;
+        }
+        
+        .firmas .firma-item .label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #6a6a6a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .firmas .firma-item .sub-label {
+            font-size: 9px;
+            color: #8a8aaa;
+            margin-top: 4px;
+        }
+        
+        .firmas .firma-item .fecha {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #5a5a7a;
+        }
+        
+        .firmas .firma-item .fecha .linea-fecha {
+            display: inline-block;
+            width: 100px;
+            border-bottom: 1px solid #8a8aaa;
+            margin-left: 6px;
+            padding-bottom: 2px;
+        }
+        
+        .btn-imprimir {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .btn-imprimir:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(124, 58, 237, 0.5);
+        }
+        
+        .btn-imprimir .icono {
+            font-size: 20px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .nota {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 30px 35px;
+                max-width: 100%;
+            }
+            .btn-imprimir {
+                display: none !important;
+            }
+            .local-info {
+                background: #f8f6fc !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .cliente-grid,
+            .tramite-grid,
+            .resumen-pago,
+            .estado-pedido {
+                background: #faf8ff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .tabla-productos thead {
+                background: #f0edf8 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .logo-placeholder {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .estado-pedido .badge {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .header {
+                border-bottom-color: #7c3aed !important;
+            }
+            .resumen-pago .fila.total {
+                border-top-color: #7c3aed !important;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nota {
+                padding: 20px;
+            }
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            .header-left {
+                flex-direction: column;
+            }
+            .header-right {
+                text-align: center;
+            }
+            .cliente-grid,
+            .tramite-grid {
+                grid-template-columns: 1fr;
+            }
+            .firmas {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            .resumen-pago {
+                justify-content: center;
+            }
+            .resumen-pago .inner {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="nota" id="nota">
+        
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-placeholder">🖨️</div>
+                <div>
+                    <h1>Cyber <span>Comunal</span></h1>
+                    <div class="sub">TECH &amp; SUBLIMACIÓN</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="nota-titulo">NOTA DE ENTREGA</span>
+                <div class="numero"># {{ pedido.id|stringformat:"04d" }}</div>
+            </div>
+        </div>
+        
+        <!-- DATOS DEL LOCAL -->
+        <div class="local-info">
+            <span class="item">📍 <strong>Av. Principal, C.C. Las Mercedes, Nivel 1, Local 4B</strong></span>
+            <span class="item">📞 <strong>+58 412-5551234</strong></span>
+            <span class="item">✉️ <strong>cyber.comunal.ve@gmail.com</strong></span>
+        </div>
+        
+        <!-- DATOS DEL CLIENTE -->
+        <div class="seccion">
+            <div class="seccion-titulo">👤 Datos del Cliente</div>
+            <div class="cliente-grid">
+                <div class="campo">
+                    <span class="label">Nombre Completo</span>
+                    <span class="valor">{{ pedido.nombre_cliente }}</span>
+                </div>
+                <div class="campo">
+                    <span class="label">ID / RIF</span>
+                    <span class="valor">{{ pedido.id_cliente|default:"No especificado" }}</span>
+                </div>
+                <div class="campo">
+                    <span class="label">Dirección</span>
+                    <span class="valor">{{ pedido.direccion_cliente|default:"No especificada" }}</span>
+                </div>
+                <div class="campo">
+                    <span class="label">Teléfono</span>
+                    <span class="valor">{{ pedido.telefono_cliente|default:"No especificado" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- INFORMACIÓN DEL TRÁMITE -->
+        <div class="seccion">
+            <div class="seccion-titulo">📋 Información del Trámite</div>
+            <div class="tramite-grid">
+                <div class="campo">
+                    <span class="label">Fecha del Pedido</span>
+                    <span class="valor">{{ pedido.fecha_pedido|date:"d/m/Y" }}</span>
+                </div>
+                <div class="campo">
+                    <span class="label">Registrado Por</span>
+                    <span class="valor">{{ pedido.registrado_por.username }} <span style="font-weight:400;color:#8a8aaa;font-size:11px;">(ID: {{ pedido.registrado_por.id|stringformat:"AD%02d" }})</span></span>
+                </div>
+                <div class="campo" style="grid-column: span 2;">
+                    <span class="label">Fecha Estimada de Entrega</span>
+                    <span class="valor">{{ pedido.fecha_entrega|date:"d/m/Y"|default:"Por definir" }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PRODUCTOS / SERVICIOS -->
+        <div class="seccion">
+            <div class="seccion-titulo">📦 Productos / Servicios Encargados</div>
+            <table class="tabla-productos">
+                <thead>
+                    <tr>
+                        <th>Ítem</th>
+                        <th>Descripción</th>
+                        <th>Especificaciones</th>
+                        <th style="text-align:center;">Cant.</th>
+                        <th style="text-align:right;">Precio Unit.</th>
+                        <th style="text-align:right;">Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>1</strong></td>
+                        <td><strong>{{ pedido.producto.nombre }}</strong></td>
+                        <td style="font-size:12px;color:#5a5a7a;">
+                            {{ pedido.especificaciones|default:"Sin especificaciones"|truncatechars:60 }}
+                        </td>
+                        <td style="text-align:center;">{{ pedido.cantidad }}</td>
+                        <td style="text-align:right;">Bs {{ pedido.producto.precio_base|floatformat:2 }}</td>
+                        <td style="text-align:right;font-weight:700;">Bs {{ pedido.precio_total|floatformat:2 }}</td>
+                    </tr>
+                    {% if pedido.archivo_diseno %}
+                    <tr>
+                        <td colspan="6" style="font-size:11px;color:#6a6a8a;padding-top:4px;">
+                            🎨 Diseño adjunto: {{ pedido.archivo_diseno.name|cut:"disenos/" }}
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- RESUMEN DE PAGO -->
+        <div class="seccion">
+            <div class="seccion-titulo">💰 Resumen de Pago</div>
+            <div class="resumen-pago">
+                <div class="inner">
+                    <div class="fila">
+                        <span>Subtotal</span>
+                        <span>Bs {{ pedido.precio_total|floatformat:2 }}</span>
+                    </div>
+                    <div class="fila">
+                        <span>IVA (16%)</span>
+                        <span>Bs {{ pedido.precio_total|floatformat:2|add:"0.00"|floatformat:2 }}</span>
+                    </div>
+                    <div class="fila">
+                        <span>Abonado</span>
+                        <span style="color:#7c3aed;">Bs {{ pedido.abono|floatformat:2 }}</span>
+                    </div>
+                    <div class="fila total">
+                        <span>Total a Pagar</span>
+                        <span class="valor">Bs {{ pedido.precio_total|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ESTADO DEL PEDIDO -->
+        <div class="seccion">
+            <div class="seccion-titulo">📌 Estado del Pedido</div>
+            <div class="estado-pedido">
+                <span class="label">Estado actual:</span>
+                <span class="badge 
+                    {% if pedido.estado == 'entregado' %}entregado
+                    {% elif pedido.estado == 'pendiente' %}pendiente
+                    {% elif pedido.estado == 'produccion' %}produccion
+                    {% elif pedido.estado == 'listo' %}listo
+                    {% elif pedido.estado == 'cancelado' %}cancelado
+                    {% else %}produccion{% endif %}">
+                    {{ pedido.get_estado_display }}
+                </span>
+                <span style="font-size:11px;color:#8a8aaa;margin-left:auto;">
+                    {% if pedido.estado == 'entregado' %}
+                        Entregado el {{ pedido.fecha_entrega|date:"d/m/Y" }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <!-- FIRMAS -->
+        <div class="firmas">
+            <div class="firma-item">
+                <div class="linea"></div>
+                <div class="label">SELLO Y FIRMA DEL LOCAL</div>
+                <div class="sub-label">(Recibido Completo)</div>
+                <div class="fecha">
+                    Fecha: <span class="linea-fecha"></span>
+                </div>
+            </div>
+            <div class="firma-item">
+                <div class="linea"></div>
+                <div class="label">FIRMA DEL CLIENTE</div>
+                <div class="sub-label">(Recibido Conforme)</div>
+                <div class="fecha">
+                    Fecha: <span class="linea-fecha"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PIE DE PÁGINA -->
+        <div style="margin-top:30px;padding-top:15px;border-top:1px solid #ede6f8;text-align:center;font-size:9px;color:#b0b0c8;">
+            Este documento es una nota de entrega. No tiene validez fiscal. 
+            • Cyber Comunal • Ntra. Sra. Mercedes • Gracias por su confianza.
+        </div>
+        
+    </div>
+    
+    <!-- BOTÓN IMPRIMIR -->
+    <button class="btn-imprimir" onclick="window.print()">
+        <span class="icono">🖨️</span> Imprimir Nota de Entrega
+    </button>
+    
+</body>
+</html>

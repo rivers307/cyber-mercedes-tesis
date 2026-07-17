@@ -1,101 +1,223 @@
 {% extends 'base.html' %}
 
-{% block title %}Conciliar Auditoría - Cyber Mercedes{% endblock %}
+{% block title %}Conciliar Auditoría - Cyber Comunal Mercedes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'lista_auditorias' %}" class="btn btn-secondary">
-            ← Volver
-        </a>
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'lista_auditorias' %}" class="hover:text-primary transition-colors">Auditorías</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Conciliación</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Conciliar Auditoría</h2>
+            <p class="text-on-surface-variant mt-1">{{ auditoria.nombre }} - {{ auditoria.fecha_inicio|date:"d/m/Y" }} al {{ auditoria.fecha_fin|date:"d/m/Y" }}</p>
+        </div>
+        <div>
+            <span class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                ⚠️ Pendiente de Conciliación
+            </span>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-warning">
-            <h4><i class="bi bi-file-diff"></i> Conciliación de Auditoría: {{ auditoria.nombre }}</h4>
+    <!-- Resumen de la auditoría -->
+    <div class="glass-card rounded-2xl p-6">
+        <div class="flex flex-wrap gap-6 justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-2xl">event_note</span>
+                </div>
+                <div>
+                    <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Auditoría</p>
+                    <p class="text-white font-bold text-lg">{{ auditoria.nombre }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div>
+                    <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Tipo</p>
+                    <p class="text-white">{{ auditoria.get_tipo_display }}</p>
+                </div>
+                <div>
+                    <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Período</p>
+                    <p class="text-white">{{ auditoria.fecha_inicio|date:"d/m/Y" }} - {{ auditoria.fecha_fin|date:"d/m/Y" }}</p>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
+    </div>
+
+    <!-- Formulario de conciliación -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">balance</span>
+                Diferencias entre Inventario Teórico y Físico
+            </h3>
+            <p class="text-sm text-white/40 mt-1">Para cada ítem con variación, seleccione una justificación y, si aplica, asigne un costo de reposición.</p>
+        </div>
+
+        <form method="POST" class="p-6 space-y-6" id="formConciliacion">
+            {% csrf_token %}
+
+            {% for item in items %}
+            <div class="glass-card p-5 rounded-xl border-l-4 
+                {% if item.variacion > 0 %}border-red-500
+                {% elif item.variacion < 0 %}border-green-500
+                {% else %}border-white/10{% endif %}">
                 
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Teórico</th>
-                                <th>Físico</th>
-                                <th>Variación</th>
-                                <th>Justificación *</th>
-                                <th>Detalle</th>
-                                <th>Costo Reposición</th>
-                            </thead>
-                        <tbody>
-                            {% for item in items %}
-                            <tr class="{% if item.variacion != 0 %}table-warning{% endif %}">
-                                <td>
-                                    {% if item.tipo == 'insumo' %}
-                                        {{ item.hallazgo.insumo.nombre }}
-                                    {% else %}
-                                        {{ item.hallazgo.activo.nombre }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if item.tipo == 'insumo' %}
-                                        {{ item.teorico }}
-                                    {% else %}
-                                        {{ item.teorico }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if item.tipo == 'insumo' %}
-                                        {{ item.hallazgo.cantidad_fisica }}
-                                    {% else %}
-                                        {{ item.hallazgo.estado_fisico }}
-                                    {% endif %}
-                                </td>
-                                <td class="{% if item.variacion > 0 %}text-danger{% elif item.variacion < 0 %}text-success{% endif %}">
-                                    {% if item.tipo == 'insumo' %}
-                                        {{ item.variacion }}
-                                    {% else %}
-                                        {% if item.teorico != item.hallazgo.estado_fisico %}⚠️ Cambio de estado{% else %}✅ OK{% endif %}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <select name="justificacion_{{ item.hallazgo.id }}" class="form-select" required>
-                                        <option value="">Seleccionar justificación</option>
-                                        {% for key, value in justificaciones.items %}
-                                        <option value="{{ key }}">{{ value }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="text" name="detalle_{{ item.hallazgo.id }}" class="form-control" 
-                                           placeholder="Explicación detallada...">
-                                </td>
-                                <td>
-                                    {% if item.tipo == 'insumo' %}
-                                    <input type="number" step="0.01" name="costo_{{ item.hallazgo.id }}" class="form-control" 
-                                           value="0" placeholder="Bs">
-                                    {% else %}
-                                    ---
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
+                    <div>
+                        <h4 class="text-white font-bold text-lg">
+                            {% if item.tipo == 'insumo' %}
+                                {{ item.hallazgo.insumo.nombre }}
+                            {% else %}
+                                {{ item.hallazgo.activo.nombre }}
+                            {% endif %}
+                        </h4>
+                        <p class="text-sm text-white/40">
+                            {% if item.tipo == 'insumo' %}
+                                Código: {{ item.hallazgo.insumo.codigo }}
+                            {% else %}
+                                Código: {{ item.hallazgo.activo.codigo }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
+                            {% if item.variacion > 0 %}bg-red-500/20 text-red-400 border border-red-500/30
+                            {% elif item.variacion < 0 %}bg-green-500/20 text-green-400 border border-green-500/30
+                            {% else %}bg-white/10 text-white/40 border border-white/10{% endif %}">
+                            {% if item.tipo == 'insumo' %}
+                                Variación: {{ item.variacion }} unidades
+                            {% else %}
+                                Cambio de estado detectado
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
 
-                <div class="alert alert-warning mt-3">
-                    <strong>⚠️ Importante:</strong> La conciliación finalizará la auditoría y generará un reporte oficial.
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Datos teóricos vs físicos -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between p-3 rounded-lg bg-white/5">
+                            <span class="text-white/50 text-sm">📊 Valor Teórico:</span>
+                            <span class="text-white font-bold">
+                                {% if item.tipo == 'insumo' %}
+                                    {{ item.teorico }} {{ item.hallazgo.insumo.unidad }}
+                                {% else %}
+                                    {{ item.teorico }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between p-3 rounded-lg bg-white/5">
+                            <span class="text-white/50 text-sm">🔍 Valor Físico:</span>
+                            <span class="text-white font-bold">
+                                {% if item.tipo == 'insumo' %}
+                                    {{ item.hallazgo.cantidad_fisica }} {{ item.hallazgo.insumo.unidad }}
+                                {% else %}
+                                    {{ item.hallazgo.estado_fisico }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn btn-warning">
-                    <i class="bi bi-check2-circle"></i> Finalizar Conciliación
+                    <!-- Justificación y costo -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
+                                Justificación *
+                            </label>
+                            <select name="justificacion_{{ item.hallazgo.id }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" required>
+                                <option value="">Seleccionar justificación</option>
+                                {% for key, value in justificaciones.items %}
+                                <option value="{{ key }}">{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="text-red-400 text-xs mt-1 hidden error-justificacion">Debe seleccionar una justificación.</div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
+                                Detalle / Observaciones
+                            </label>
+                            <input type="text" name="detalle_{{ item.hallazgo.id }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm" placeholder="Explicación detallada...">
+                        </div>
+                        {% if item.tipo == 'insumo' %}
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">
+                                Costo de Reposición (Bs)
+                            </label>
+                            <input type="number" step="0.01" name="costo_{{ item.hallazgo.id }}" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm" placeholder="0.00" min="0">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-12">
+                <span class="material-symbols-outlined text-5xl text-white/20">check_circle</span>
+                <p class="text-white/40 mt-4">No hay diferencias para conciliar</p>
+            </div>
+            {% endfor %}
+
+            <!-- Botones de acción -->
+            <div class="flex justify-end gap-4 pt-6 border-t border-white/10">
+                <a href="{% url 'lista_auditorias' %}" class="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-8 py-2.5 bg-gradient-to-r from-amber-500 to-amber-700 text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-amber-500/30 hover:opacity-90 transition-all">
+                    Finalizar Conciliación
                 </button>
-            </form>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen de hallazgos -->
+    <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-4">
+            <span class="material-symbols-outlined text-primary">summary</span>
+            Resumen de Hallazgos
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center p-4 rounded-xl bg-white/5">
+                <p class="text-2xl font-bold text-white">{{ total_items|default:0 }}</p>
+                <p class="text-sm text-white/40">Items con variación</p>
+            </div>
+            <div class="text-center p-4 rounded-xl bg-white/5">
+                <p class="text-2xl font-bold text-amber-400">{{ faltantes|default:0 }}</p>
+                <p class="text-sm text-white/40">Faltantes</p>
+            </div>
+            <div class="text-center p-4 rounded-xl bg-white/5">
+                <p class="text-2xl font-bold text-green-400">{{ sobrantes|default:0 }}</p>
+                <p class="text-sm text-white/40">Sobrantes</p>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formConciliacion');
+        
+        form.addEventListener('submit', function(e) {
+            const selects = document.querySelectorAll('select[name^="justificacion_"]');
+            let allValid = true;
+            selects.forEach(sel => {
+                const errorDiv = sel.parentElement.querySelector('.error-justificacion');
+                if (!sel.value) {
+                    sel.classList.add('border-red-500');
+                    if (errorDiv) errorDiv.classList.remove('hidden');
+                    allValid = false;
+                } else {
+                    sel.classList.remove('border-red-500');
+                    if (errorDiv) errorDiv.classList.add('hidden');
+                }
+            });
+            if (!allValid) {
+                e.preventDefault();
+                alert('Debe seleccionar una justificación para cada ítem con variación.');
+            }
+        });
+    });
+</script>
 {% endblock %}

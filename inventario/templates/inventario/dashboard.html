@@ -1,266 +1,236 @@
 {% extends 'base.html' %}
 
-{% block title %}Inventario - Cyber Mercedes{% endblock %}
+{% block title %}Panel de Inventario - Cyber Comunal Mercedes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Botón para volver al Dashboard Principal -->
-    <div class="mb-3">
-        <a href="/dashboard/" class="btn btn-secondary">
-            ← Volver al Dashboard Principal
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-white tracking-tight">Panel de Inventario</h2>
+            <p class="text-purple-400/70 mt-1">Control de insumos y activos fijos en tiempo real.</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'crear_insumo' %}" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-purple-500/30 hover:scale-105 transition-all">
+                <span class="material-symbols-outlined">add_box</span> Nuevo Insumo
+            </a>
+            <a href="{% url 'registrar_entrada' %}" class="px-6 py-2.5 bg-white/5 border border-purple-500/30 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-purple-500/10 transition-all">
+                <span class="material-symbols-outlined">upload</span> Registrar Entrada
+            </a>
+            <a href="{% url 'registrar_salida' %}" class="px-6 py-2.5 bg-white/5 border border-purple-500/30 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-purple-500/10 transition-all">
+                <span class="material-symbols-outlined">download</span> Registrar Salida
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de estadísticas (insumos) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20">
+                <span class="material-symbols-outlined text-6xl">inventory</span>
+            </div>
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Total Insumos</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-4xl font-bold text-white">{{ total_insumos }}</h3>
+                <span class="text-green-400 text-xs flex items-center"><span class="material-symbols-outlined text-sm">trending_up</span> vs mes anterior</span>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10 text-amber-400">
+                <span class="material-symbols-outlined text-6xl">warning</span>
+            </div>
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Stock Bajo</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-4xl font-bold text-amber-400">{{ stock_bajo }}</h3>
+                <span class="text-white/40 text-xs">SKUs críticos</span>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-20 text-red-400">
+                <span class="material-symbols-outlined text-6xl">dangerous</span>
+            </div>
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Sin Stock</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-4xl font-bold text-red-400">{{ sin_stock }}</h3>
+                <span class="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full">URGENTE</span>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                <span class="material-symbols-outlined text-6xl">payments</span>
+            </div>
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider mb-2">Valor Total</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-4xl font-bold text-white">Bs {{ valor_total|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activos fijos y operatividad -->
+    <div class="grid grid-cols-12 gap-6 mb-8">
+        <div class="col-span-12 lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400">
+                        <span class="material-symbols-outlined">devices</span>
+                    </div>
+                    <p class="text-white/60 text-xs font-bold uppercase tracking-wider">Total Activos</p>
+                </div>
+                <h3 class="text-3xl font-bold text-white">{{ total_activos }}</h3>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400">
+                        <span class="material-symbols-outlined">check_circle</span>
+                    </div>
+                    <p class="text-white/60 text-xs font-bold uppercase tracking-wider">Operativos</p>
+                </div>
+                <h3 class="text-3xl font-bold text-white">{{ activos_operativos }}</h3>
+            </div>
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400">
+                        <span class="material-symbols-outlined">build</span>
+                    </div>
+                    <p class="text-white/60 text-xs font-bold uppercase tracking-wider">Dañados</p>
+                </div>
+                <h3 class="text-3xl font-bold text-white">{{ activos_danados }}</h3>
+            </div>
+        </div>
+        <div class="col-span-12 lg:col-span-4 glass-card p-6 rounded-2xl flex flex-col justify-center">
+            <div class="flex justify-between items-center mb-4">
+                <p class="text-white/60 text-xs font-bold uppercase tracking-wider">Operatividad General</p>
+                <span class="text-2xl font-bold text-green-400">{{ porcentaje_operatividad|floatformat:1 }}%</span>
+            </div>
+            <div class="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r from-purple-500 to-green-400" style="width: {{ porcentaje_operatividad }}%;"></div>
+            </div>
+            <p class="mt-4 text-sm text-white/40 text-center">{{ activos_danados }} equipos pendientes de mantenimiento</p>
+        </div>
+    </div>
+
+    <!-- Movimientos recientes y alertas -->
+    <div class="grid grid-cols-12 gap-6">
+        <!-- Tabla de movimientos -->
+        <div class="col-span-12 lg:col-span-8 glass-card rounded-2xl overflow-hidden">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center">
+                <h4 class="text-white font-bold text-lg">Movimientos Recientes</h4>
+                <a href="{% url 'historial_movimientos' %}" class="text-purple-400 text-xs font-bold uppercase tracking-widest hover:underline">Ver Historial Completo</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-white/5">
+                        <tr class="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                            <th class="px-6 py-4">Fecha</th>
+                            <th class="px-6 py-4">Ítem</th>
+                            <th class="px-6 py-4">Tipo</th>
+                            <th class="px-6 py-4">Cant.</th>
+                            <th class="px-6 py-4 text-right">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {% for mov in ultimos_movimientos|slice:":5" %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="px-6 py-4 text-sm text-white/60">{{ mov.fecha|date:"d M, H:i" }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-purple-400">
+                                        <span class="material-symbols-outlined text-sm">inventory_2</span>
+                                    </div>
+                                    <span class="font-bold text-white">{{ mov.insumo.nombre }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if mov.tipo == 'entrada' %}
+                                    <span class="px-2 py-1 bg-green-500/10 text-green-400 text-[10px] rounded font-bold">ENTRADA</span>
+                                {% else %}
+                                    <span class="px-2 py-1 bg-red-500/10 text-red-400 text-[10px] rounded font-bold">SALIDA</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 font-mono text-white">
+                                {% if mov.tipo == 'entrada' %}+{% else %}-{% endif %}{{ mov.cantidad }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="material-symbols-outlined text-green-400">check_circle</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="px-6 py-8 text-center text-white/40">No hay movimientos recientes</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Alertas y acciones rápidas -->
+        <div class="col-span-12 lg:col-span-4 space-y-6">
+            <div class="glass-card p-6 rounded-2xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h4 class="text-white font-bold text-lg flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-400">notifications_active</span>
+                        Alertas
+                    </h4>
+                    <span class="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] rounded-full font-bold">{{ alertas.count }} ACTIVAS</span>
+                </div>
+                <div class="space-y-4">
+                    {% for alerta in alertas|slice:":3" %}
+                    <div class="p-4 bg-white/5 border-l-4 border-amber-500 rounded-r-xl">
+                        <div class="flex justify-between items-start">
+                            <p class="font-bold text-white">{{ alerta.insumo.nombre }}</p>
+                            <span class="text-[10px] text-white/40">{{ alerta.fecha_alerta|timesince }}</span>
+                        </div>
+                        <p class="text-sm text-white/50 mt-1">Stock actual: {{ alerta.stock_actual }} | Mínimo: {{ alerta.stock_minimo }}</p>
+                        <button onclick="marcarLeida({{ alerta.id }})" class="mt-2 text-xs text-purple-400 hover:underline">Marcar como leída</button>
+                    </div>
+                    {% empty %}
+                    <p class="text-white/40 text-center py-4">No hay alertas activas</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+<div class="glass-card p-6 rounded-2xl relative overflow-hidden">
+    <div class="relative z-10">
+        <p class="font-bold text-white text-lg mb-2">Reportes de Inventario</p>
+        <p class="text-white/50 text-sm mb-4">Genera reportes detallados de todos los movimientos</p>
+        <a href="{% url 'exportar_reporte_excel' %}" class="w-full block text-center py-2 bg-gradient-to-r from-purple-600 to-purple-800 text-white font-bold rounded-lg hover:opacity-90 transition">
+            DESCARGAR REPORTE (EXCEL)
         </a>
     </div>
-
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="bi bi-box-seam"></i> Módulo de Inventario</h2>
-            <p class="text-muted">Control de insumos, materiales y auditoría de movimientos</p>
-        </div>
-        <div class="col text-end">
-            <a href="{% url 'lista_insumos' %}" class="btn btn-success">
-                <i class="bi bi-grid"></i> Ver Insumos
-            </a>
-            <a href="{% url 'historial_movimientos' %}" class="btn btn-info">
-                <i class="bi bi-clock-history"></i> Auditoría
-            </a>
-            <a href="{% url 'gestion_activos' %}" class="btn btn-primary">
-                <i class="bi bi-pc-display"></i> Activos Fijos
-            </a>
-            <a href="{% url 'lista_auditorias' %}" class="btn btn-danger">
-                <i class="bi bi-calendar-check"></i> Auditorías
-            </a>
-        </div>
-    </div>
-
-    <!-- Tarjetas de Estadísticas de Insumos -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card text-center bg-primary text-white">
-                <div class="card-body">
-                    <h3>{{ total_insumos }}</h3>
-                    <small>📦 Total Insumos</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center bg-warning text-dark">
-                <div class="card-body">
-                    <h3>{{ stock_bajo }}</h3>
-                    <small>⚠️ Stock Bajo</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center bg-danger text-white">
-                <div class="card-body">
-                    <h3>{{ sin_stock }}</h3>
-                    <small>❌ Sin Stock</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-center bg-success text-white">
-                <div class="card-body">
-                    <h3>Bs {{ valor_total|floatformat:2 }}</h3>
-                    <small>💰 Valor Total</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tarjetas de Estadísticas de Activos Fijos -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card text-center bg-info text-white">
-                <div class="card-body">
-                    <h3>{{ total_activos }}</h3>
-                    <small>🖥️ Total Activos</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center bg-success text-white">
-                <div class="card-body">
-                    <h3>{{ activos_operativos }}</h3>
-                    <small>✅ Operativos</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-center bg-danger text-white">
-                <div class="card-body">
-                    <h3>{{ activos_danados }}</h3>
-                    <small>🔧 Dañados</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Barra de Operatividad -->
-    <div class="card mb-4">
-        <div class="card-header bg-dark text-white">
-            <h5><i class="bi bi-graph-up"></i> Estado de Operatividad</h5>
-        </div>
-        <div class="card-body">
-            <div class="progress" style="height: 30px;">
-                <div class="progress-bar bg-success" role="progressbar" 
-                    style="width: {{ porcentaje_operatividad }}%;" 
-                    aria-valuenow="{{ porcentaje_operatividad }}" 
-                    aria-valuemin="0" aria-valuemax="100">
-                    {{ porcentaje_operatividad|floatformat:1 }}% Operativo
-                </div>
-            </div>
-            <p class="text-muted mt-2">
-                <small>Auditorías activas: {{ auditorias_activas }}</small>
-            </p>
-        </div>
-    </div>
-
-    <!-- Alertas de Stock -->
-    {% if alertas %}
-    <div class="card mb-4">
-        <div class="card-header bg-danger text-white">
-            <h4><i class="bi bi-exclamation-triangle"></i> Alertas de Stock Bajo</h4>
-        </div>
-        <div class="card-body">
-            <div class="list-group">
-                {% for alerta in alertas %}
-                <div class="list-group-item list-group-item-warning" id="alerta-{{ alerta.id }}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ alerta.insumo.nombre }}</strong><br>
-                            <small>Stock actual: {{ alerta.stock_actual }} | Mínimo: {{ alerta.stock_minimo }}</small>
-                        </div>
-                        <button class="btn btn-sm btn-success" onclick="marcarLeida({{ alerta.id }})">
-                            <i class="bi bi-check"></i> Marcar como leída
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Acciones Rápidas -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5><i class="bi bi-plus-circle"></i> Acciones Rápidas - Insumos</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'crear_insumo' %}" class="btn btn-outline-success">
-                            <i class="bi bi-plus"></i> Nuevo Insumo
-                        </a>
-                        <a href="{% url 'registrar_entrada' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-arrow-down"></i> Registrar Entrada (Compra)
-                        </a>
-                        <a href="{% url 'registrar_salida' %}" class="btn btn-outline-warning">
-                            <i class="bi bi-arrow-up"></i> Registrar Salida (Uso)
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5><i class="bi bi-clock-history"></i> Últimos Movimientos</h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        {% for mov in ultimos_movimientos|slice:":5" %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between">
-                                <span>{{ mov.insumo.nombre }}</span>
-                                <span class="badge 
-                                    {% if mov.tipo == 'entrada' %}bg-success
-                                    {% elif mov.tipo == 'salida' %}bg-warning
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ mov.get_tipo_display }}
-                                </span>
-                            </div>
-                            <small>{{ mov.cantidad }} {{ mov.insumo.unidad }} - {{ mov.fecha|date:"d/m/Y H:i" }}</small>
-                            <br>
-                            <small class="text-muted">Por: {{ mov.realizado_por.username }}</small>
-                        </div>
-                        {% empty %}
-                        <div class="list-group-item">
-                            <p class="text-muted mb-0">Sin movimientos registrados</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div class="text-center mt-2">
-                        <a href="{% url 'historial_movimientos' %}" class="btn btn-sm btn-link">Ver todos →</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Auditorías Pendientes -->
-    <div class="card">
-        <div class="card-header bg-danger text-white">
-            <h5><i class="bi bi-calendar-check"></i> Auditorías Activas</h5>
-        </div>
-        <div class="card-body">
-            {% if auditorias_activas > 0 %}
-                <div class="alert alert-warning">
-                    <strong>⚠️ Hay {{ auditorias_activas }} auditoría(s) activa(s) pendientes de realizar.</strong>
-                    <br>
-                    <a href="{% url 'lista_auditorias' %}" class="btn btn-sm btn-warning mt-2">
-                        Ir a Auditorías Pendientes
-                    </a>
-                </div>
-            {% else %}
-                <div class="alert alert-success">
-                    <strong>✅ No hay auditorías pendientes.</strong>
-                    <br>
-                    <a href="{% url 'programar_auditoria' %}" class="btn btn-sm btn-success mt-2">
-                        Programar Nueva Auditoría
-                    </a>
-                </div>
-            {% endif %}
-        </div>
+    <div class="absolute -bottom-4 -right-4 opacity-10">
+        <span class="material-symbols-outlined text-8xl text-white">analytics</span>
     </div>
 </div>
 
 <script>
-function marcarLeida(id) {
-    fetch(`/inventario/alerta/${id}/leer/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById(`alerta-${id}`).style.display = 'none';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    function marcarLeida(id) {
+        fetch(`/inventario/alerta/${id}/leer/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) location.reload();
+        });
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 </script>
 {% endblock %}

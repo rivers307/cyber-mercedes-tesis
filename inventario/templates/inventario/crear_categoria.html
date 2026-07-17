@@ -1,26 +1,83 @@
 {% extends 'base.html' %}
 
-{% block title %}Nueva Categoría - Cyber Mercedes{% endblock %}
+{% block title %}Nueva Categoría - Inventario{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h4><i class="bi bi-tag"></i> Nueva Categoría de Insumos</h4>
+<div class="p-8 max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-8">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'lista_insumos' %}" class="hover:text-primary transition-colors">Insumos</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Nueva Categoría</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Nueva Categoría</h2>
+            <p class="text-on-surface-variant mt-1">Crear una nueva categoría para organizar los insumos</p>
         </div>
-        <div class="card-body">
-            <form method="POST" action="{% url 'crear_categoria' %}">
+        <a href="{% url 'lista_insumos' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Volver
+        </a>
+    </div>
+
+    <!-- Formulario -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">category</span>
+                Datos de la Categoría
+            </h3>
+            <p class="text-sm text-white/40 mt-1">Complete los campos para crear una nueva categoría de insumos</p>
+        </div>
+        <div class="p-8">
+            <form method="POST" action="{% url 'crear_categoria' %}" class="grid grid-cols-1 gap-6">
                 {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label">Nombre de la Categoría *</label>
-                    <input type="text" name="nombre" class="form-control" required>
+                
+                <!-- Nombre -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Nombre de la Categoría *
+                    </label>
+                    <input type="text" name="nombre" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                           placeholder="Ej: Insumos de Sublimación, Papelería, Limpieza..." required>
+                    <p class="text-[9px] text-white/30">Nombre único y descriptivo para la categoría.</p>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Descripción</label>
-                    <textarea name="descripcion" class="form-control" rows="3"></textarea>
+                
+                <!-- Descripción -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Descripción (opcional)
+                    </label>
+                    <textarea name="descripcion" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                              rows="4" placeholder="Describe qué tipo de insumos pertenecen a esta categoría..."></textarea>
                 </div>
-                <button type="submit" class="btn btn-success">Guardar Categoría</button>
-                <a href="{% url 'lista_insumos' %}" class="btn btn-secondary">Cancelar</a>
+
+                <!-- Información de ayuda -->
+                <div class="glass-card p-4 rounded-xl border-l-4 border-primary">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary">info</span>
+                        <div>
+                            <p class="text-sm text-white/80 font-medium">¿Para qué sirve una categoría?</p>
+                            <ul class="text-xs text-white/50 mt-2 space-y-1">
+                                <li>• Organizar los insumos por tipo o función</li>
+                                <li>• Filtrar y buscar insumos más fácilmente</li>
+                                <li>• Generar reportes por categoría</li>
+                                <li>• Ejemplos: <span class="text-white/70">"Insumos de Sublimación"</span>, <span class="text-white/70">"Papelería"</span>, <span class="text-white/70">"Limpieza"</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones -->
+                <div class="flex justify-end gap-4 pt-4 border-t border-white/10">
+                    <a href="{% url 'lista_insumos' %}" class="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-primary to-accent-purple text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/30 hover:opacity-90 transition-all">
+                        Crear Categoría
+                    </button>
+                </div>
             </form>
         </div>
     </div>

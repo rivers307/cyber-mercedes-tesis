@@ -1,128 +1,227 @@
 {% extends 'base.html' %}
 
-{% block title %}Pedido #{{ pedido.id }} - Cyber Mercedes{% endblock %}
+{% block title %}Pedido #{{ pedido.id }} - Sublimación{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">
-            ← Volver a Pedidos
-        </a>
+<div class="p-8 space-y-10">
+    <div class="flex items-center justify-between">
+        <div>
+            <a href="{% url 'lista_pedidos' %}" class="text-white/40 hover:text-white text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver
+            </a>
+            <h2 class="text-2xl font-black tracking-tight text-white mt-2">Pedido #{{ pedido.id }}</h2>
+            <p class="text-sm text-slate-400">{{ pedido.nombre_cliente }} • {{ pedido.producto.nombre }}</p>
+        </div>
+        <div class="flex gap-3 flex-wrap">
+            <!-- ✅ SOLO BOTÓN "NOTA DE ENTREGA" -->
+            <a href="{% url 'imprimir_pedido' pedido.id %}" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl text-sm font-black shadow-lg shadow-emerald-500/30 hover:scale-[1.02] transition-all">
+                <span class="material-symbols-outlined text-sm">receipt_long</span>
+                Nota de Entrega
+            </a>
+            <a href="{% url 'crear_pedido_form' %}" class="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl text-sm font-black shadow-lg shadow-purple-500/30 hover:scale-[1.02] transition-all">
+                <span class="material-symbols-outlined text-lg">add</span>
+                NUEVO PEDIDO
+            </a>
+        </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h4>Pedido #{{ pedido.id }}</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Cliente:</strong> {{ pedido.nombre_cliente }}</p>
-                            <p><strong>Teléfono:</strong> {{ pedido.telefono|default:"No registrado" }}</p>
-                            <p><strong>Producto:</strong> {{ pedido.producto.nombre }}</p>
-                            <p><strong>Cantidad:</strong> {{ pedido.cantidad }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Fecha Pedido:</strong> {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
-                            <p><strong>Estado:</strong> 
-                                <span class="badge 
-                                    {% if pedido.estado == 'pendiente' %}bg-warning
-                                    {% elif pedido.estado == 'diseño' %}bg-info
-                                    {% elif pedido.estado == 'produccion' %}bg-primary
-                                    {% elif pedido.estado == 'listo' %}bg-success
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ pedido.get_estado_display }}
-                                </span>
-                            </p>
-                            {% if pedido.fecha_entrega %}
-                            <p><strong>Fecha Entrega:</strong> {{ pedido.fecha_entrega|date:"d/m/Y H:i" }}</p>
-                            {% endif %}
-                            <p><strong>Registrado por:</strong> {{ pedido.registrado_por.username }}</p>
-                        </div>
+    <div class="grid grid-cols-12 gap-8">
+        <!-- Columna Principal (8 columnas) -->
+        <div class="col-span-12 lg:col-span-8 space-y-8">
+            <!-- Información del Pedido -->
+            <div class="glass-card rounded-2xl p-8">
+                <h3 class="text-white font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-400">info</span>
+                    Información del Pedido
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-white/40 text-[10px] uppercase font-bold tracking-wider">Cliente</p>
+                        <p class="text-white font-medium mt-1">{{ pedido.nombre_cliente }}</p>
+                        <p class="text-white/40 text-xs mt-1">ID: {{ pedido.id_cliente|default:"No especificado" }}</p>
+                        <p class="text-white/40 text-xs">Tel: {{ pedido.telefono_cliente|default:"No especificado" }}</p>
                     </div>
-                    
-                    <div class="mt-3">
-                        <h5>Especificaciones:</h5>
-                        <p class="border rounded p-2 bg-light">{{ pedido.especificaciones|default:"Sin especificaciones" }}</p>
+                    <div>
+                        <p class="text-white/40 text-[10px] uppercase font-bold tracking-wider">Producto</p>
+                        <p class="text-white font-medium mt-1">{{ pedido.producto.nombre }}</p>
+                        <p class="text-white/40 text-xs mt-1">Cantidad: {{ pedido.cantidad }} unidades</p>
+                    </div>
+                    <div>
+                        <p class="text-white/40 text-[10px] uppercase font-bold tracking-wider">Dirección</p>
+                        <p class="text-white text-sm mt-1">{{ pedido.direccion_cliente|default:"No especificada" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-white/40 text-[10px] uppercase font-bold tracking-wider">Fecha Pedido</p>
+                        <p class="text-white mt-1">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
+                        <p class="text-white/40 text-xs mt-1">Registrado por: {{ pedido.registrado_por.username }}</p>
+                    </div>
+                    <!-- ⭐ NUEVO: Precios unitarios -->
+                    <div>
+                        <p class="text-white/40 text-[10px] uppercase font-bold tracking-wider">Precio Unitario</p>
+                        <p class="text-white mt-1 font-medium">$ {{ pedido.precio_usd_unitario|floatformat:2 }} USD</p>
+                        <p class="text-white/40 text-xs">Bs {{ pedido.precio_usd_unitario|floatformat:2|add:"0.00"|floatformat:2 }}</p>
+                    </div>
+                    <div>
+                        <p class="text-white/40 text-[10px] uppercase font-bold tracking-wider">Tasa Usada</p>
+                        <p class="text-white mt-1">Bs {{ pedido.tasa_usada|floatformat:2 }} / USD</p>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <p class="text-white/40 text-[10px] uppercase font-bold tracking-wider">Especificaciones</p>
+                    <div class="bg-black/40 rounded-xl p-4 mt-2">
+                        <p class="text-slate-300 text-sm">{{ pedido.especificaciones|default:"Sin especificaciones" }}</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Sección de Pagos -->
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5><i class="bi bi-currency-dollar"></i> Información de Pago</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <p><strong>Precio Total:</strong> Bs {{ pedido.precio_total }}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p><strong>Abonos:</strong> Bs {{ pedido.abono }}</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p><strong class="{% if saldo > 0 %}text-danger{% else %}text-success{% endif %}">
-                                Saldo Pendiente: Bs {{ saldo }}
-                            </strong></p>
-                        </div>
+            <!-- Vista previa del diseño -->
+            {% if pedido.archivo_diseno %}
+            <div class="glass-card rounded-2xl p-8">
+                <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-400">image</span>
+                    Diseño Adjunto
+                </h3>
+                <div class="relative group aspect-square max-w-md rounded-2xl bg-black/80 overflow-hidden border border-white/10">
+                    <img src="{{ pedido.archivo_diseno.url }}" class="absolute inset-0 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" alt="Diseño del pedido">
+                    <div class="absolute inset-0 bg-purple-500/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[1px]">
+                        <a href="{{ pedido.archivo_diseno.url }}" target="_blank" class="bg-white text-black p-4 rounded-full shadow-2xl">
+                            <span class="material-symbols-outlined">zoom_in</span>
+                        </a>
                     </div>
-                    
-                    <form method="POST" action="{% url 'registrar_abono' pedido.id %}" class="row g-2 mt-2">
-                        {% csrf_token %}
-                        <div class="col-auto">
-                            <input type="number" step="0.50" name="monto" class="form-control" placeholder="Monto del abono" required>
-                        </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-warning">Registrar Abono</button>
-                        </div>
-                    </form>
+                </div>
+                <div class="flex justify-between items-center text-[10px] font-bold mt-3">
+                    <span class="text-slate-500 italic">{{ pedido.archivo_diseno.name|cut:"disenos/" }}</span>
+                    <a href="{{ pedido.archivo_diseno.url }}" download class="text-purple-400 uppercase tracking-widest hover:neon-text-glow transition-all flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">download</span> Descargar Original
+                    </a>
                 </div>
             </div>
-        </div>
+            {% endif %}
 
-        <div class="col-md-4">
-            <!-- Cambiar Estado -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5><i class="bi bi-arrow-repeat"></i> Cambiar Estado</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{% url 'cambiar_estado' pedido.id %}">
-                        {% csrf_token %}
-                        <select name="estado" class="form-select mb-2">
-                            <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>📋 Pendiente</option>
-                            <option value="diseño" {% if pedido.estado == 'diseño' %}selected{% endif %}>🎨 En Diseño</option>
-                            <option value="produccion" {% if pedido.estado == 'produccion' %}selected{% endif %}>🖨️ En Producción</option>
-                            <option value="listo" {% if pedido.estado == 'listo' %}selected{% endif %}>✅ Listo para Entregar</option>
-                            <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>🎁 Entregado</option>
-                            <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>❌ Cancelado</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary w-100">Actualizar Estado</button>
-                    </form>
-                </div>
+            <!-- Notas Técnicas de Producción -->
+            <div class="glass-card rounded-2xl p-8">
+                <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-400">factory</span>
+                    Notas Técnicas de Producción
+                </h3>
+                <form method="POST" action="{% url 'guardar_notas_produccion' pedido.id %}">
+                    {% csrf_token %}
+                    <textarea name="notas_produccion" class="w-full h-28 bg-black/40 border border-white/10 rounded-xl text-sm p-4 text-slate-200 placeholder:text-slate-700 focus:bg-purple-500/5 transition-all resize-none" 
+                            placeholder="Especificar parámetros: Temperatura (200°C), Tiempo (60s), Presión Media...">{{ pedido.notas_produccion|default:"" }}</textarea>
+                    <div class="flex justify-end mt-3">
+                        <button type="submit" class="bg-purple-500/20 border border-purple-500/30 text-purple-400 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all">
+                            Guardar Notas
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <!-- Historial -->
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5><i class="bi bi-clock-history"></i> Historial de Cambios</h5>
-                </div>
-                <div class="card-body">
+            <!-- Historial de Estados / Bitácora de Actividad -->
+            <div class="glass-card rounded-2xl p-8">
+                <h3 class="text-white font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-400">history</span>
+                    Bitácora de Actividad
+                </h3>
+                <div class="space-y-4">
                     {% for h in historial %}
-                    <div class="border-bottom mb-2 pb-2">
-                        <small class="text-muted">{{ h.fecha|date:"d/m/Y H:i" }}</small>
-                        <p class="mb-0">{{ h.estado_anterior }} → {{ h.estado_nuevo }}</p>
-                        <small>{{ h.cambiado_por.username }}</small>
+                    <div class="flex gap-4">
+                        <div class="relative">
+                            <div class="size-3 rounded-full bg-purple-400 neon-glow mt-1.5"></div>
+                            {% if not forloop.last %}
+                            <div class="absolute top-5 left-1 bottom-0 w-[2px] bg-white/5"></div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-white">
+                                <span class="text-purple-400">Estado:</span> 
+                                {{ h.estado_anterior }} → {{ h.estado_nuevo }}
+                            </p>
+                            <p class="text-[10px] text-white/40 mt-1">{{ h.fecha|date:"d/m/Y H:i" }} • {{ h.cambiado_por.username }}</p>
+                        </div>
                     </div>
                     {% empty %}
-                    <p class="text-muted">Sin cambios registrados</p>
+                    <p class="text-white/40 text-center py-4">Sin cambios registrados</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
+
+        <!-- Columna Lateral (4 columnas) -->
+        <div class="col-span-12 lg:col-span-4 space-y-8">
+            <!-- Estado y Cambio -->
+            <div class="glass-card rounded-2xl p-8">
+                <h3 class="text-white font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-400">sync</span>
+                    Estado del Pedido
+                </h3>
+                <div class="grid grid-cols-3 gap-2 p-1.5 bg-black/60 rounded-xl border border-white/5 mb-4">
+                    <button type="button" onclick="cambiarEstadoRapido('pendiente')" class="py-2 text-[10px] font-black rounded-lg uppercase transition-colors {% if pedido.estado == 'pendiente' %}bg-amber-500/20 text-amber-500 border border-amber-500/30{% else %}text-slate-500 hover:text-slate-300{% endif %}">Pendiente</button>
+                    <button type="button" onclick="cambiarEstadoRapido('produccion')" class="py-2 text-[10px] font-black rounded-lg uppercase transition-colors {% if pedido.estado == 'produccion' %}bg-purple-500/20 text-purple-400 border border-purple-500/30{% else %}text-slate-500 hover:text-slate-300{% endif %}">Producción</button>
+                    <button type="button" onclick="cambiarEstadoRapido('listo')" class="py-2 text-[10px] font-black rounded-lg uppercase transition-colors {% if pedido.estado == 'listo' %}bg-green-500/20 text-green-500 border border-green-500/30{% else %}text-slate-500 hover:text-slate-300{% endif %}">Listo</button>
+                </div>
+                <form method="POST" action="{% url 'cambiar_estado' pedido.id %}" id="formCambioEstado">
+                    {% csrf_token %}
+                    <select name="estado" class="w-full bg-black/40 border border-white/10 rounded-xl text-sm px-4 py-3 text-slate-200 mb-4">
+                        <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>📋 Pendiente</option>
+                        <option value="diseño" {% if pedido.estado == 'diseño' %}selected{% endif %}>🎨 En Diseño</option>
+                        <option value="produccion" {% if pedido.estado == 'produccion' %}selected{% endif %}>🖨️ En Producción</option>
+                        <option value="listo" {% if pedido.estado == 'listo' %}selected{% endif %}>✅ Listo para Entregar</option>
+                        <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>🎁 Entregado</option>
+                        <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>❌ Cancelado</option>
+                    </select>
+                    <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-purple-500/30 hover:opacity-90 transition-all">
+                        Actualizar Estado
+                    </button>
+                </form>
+            </div>
+
+            <!-- Información de Pagos -->
+            <div class="glass-card rounded-2xl p-8">
+                <h3 class="text-white font-bold mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-400">payments</span>
+                    Información de Pagos
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-white/60">Total (USD):</span>
+                        <span class="text-white font-bold">$ {{ pedido.precio_total|floatformat:2|add:"0.00"|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-white/60">Total (Bs):</span>
+                        <span class="text-white font-bold">Bs {{ pedido.precio_total|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-white/60">Abonado:</span>
+                        <span class="text-purple-400 font-bold">Bs {{ pedido.abono|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between pt-2 border-t border-white/10">
+                        <span class="text-white/60">Saldo Pendiente:</span>
+                        <span class="text-{% if pedido.saldo_pendiente > 0 %}amber-400{% else %}green-400{% endif %} font-bold text-lg">
+                            Bs {{ pedido.saldo_pendiente|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+                <form method="POST" action="{% url 'registrar_abono' pedido.id %}" class="mt-6">
+                    {% csrf_token %}
+                    <div class="flex gap-3">
+                        <input type="number" step="0.50" name="monto" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm" placeholder="Monto a abonar" required>
+                        <button type="submit" class="bg-purple-500/20 border border-purple-500/30 text-purple-400 px-5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all">
+                            Registrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    function cambiarEstadoRapido(estado) {
+        const form = document.getElementById('formCambioEstado');
+        const select = form.querySelector('select[name="estado"]');
+        select.value = estado;
+        form.submit();
+    }
+</script>
 {% endblock %}

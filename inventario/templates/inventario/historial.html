@@ -1,98 +1,194 @@
 {% extends 'base.html' %}
 
-{% block title %}Historial de Movimientos - Cyber Mercedes{% endblock %}
+{% block title %}Historial de Movimientos - Inventario{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
-            ← Volver a Inventario
-        </a>
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'dashboard_inventario' %}" class="hover:text-primary transition-colors">Inventario</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Historial de Movimientos</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Historial de Movimientos</h2>
+            <p class="text-on-surface-variant mt-1">Registro completo de entradas, salidas y ajustes de inventario</p>
+        </div>
+        <div class="flex gap-3">
+            <!-- ✅ BOTÓN DE EXPORTAR CSV MOVIDO AQUÍ -->
+            <a href="{% url 'exportar_reporte_excel' %}" class="flex items-center gap-2 px-5 py-2.5 bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl text-sm font-bold hover:bg-green-500 hover:text-white transition-all">
+                <span class="material-symbols-outlined text-sm">download</span>
+                Exportar Excel
+            </a>
+            <a href="{% url 'dashboard_inventario' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver
+            </a>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-info text-white">
-            <h4><i class="bi bi-clock-history"></i> Historial de Movimientos (Auditoría)</h4>
-        </div>
-        <div class="card-body">
-            <!-- Filtros -->
-            <form method="GET" class="row mb-3">
-                <div class="col-md-4">
-                    <select name="tipo" class="form-select">
-                        <option value="">Todos los tipos</option>
-                        {% for key, value in tipos %}
-                        <option value="{{ key }}" {% if request.GET.tipo == key %}selected{% endif %}>
-                            {{ value }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <select name="insumo" class="form-select">
-                        <option value="">Todos los insumos</option>
-                        {% for insumo in insumos %}
-                        <option value="{{ insumo.id }}" {% if request.GET.insumo == insumo.id|stringformat:"s" %}selected{% endif %}>
-                            {{ insumo.nombre }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-                    <a href="{% url 'historial_movimientos' %}" class="btn btn-secondary">Limpiar</a>
-                </div>
-            </form>
+    <!-- Filtros -->
+    <div class="glass-card rounded-2xl p-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tipo de Movimiento</label>
+                <select name="tipo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm mt-1">
+                    <option value="">Todos</option>
+                    {% for key, value in tipos %}
+                    <option value="{{ key }}" {% if request.GET.tipo == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Insumo</label>
+                <select name="insumo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm mt-1">
+                    <option value="">Todos</option>
+                    {% for insumo in insumos %}
+                    <option value="{{ insumo.id }}" {% if request.GET.insumo == insumo.id|stringformat:"s" %}selected{% endif %}>{{ insumo.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Desde</label>
+                <input type="date" name="fecha_desde" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm mt-1" value="{{ request.GET.fecha_desde }}">
+            </div>
+            <div>
+                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fecha Hasta</label>
+                <input type="date" name="fecha_hasta" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white text-sm mt-1" value="{{ request.GET.fecha_hasta }}">
+            </div>
+            <div class="flex items-end gap-2 md:col-span-4">
+                <button type="submit" class="flex-1 bg-gradient-to-r from-primary to-accent-purple text-white px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/30 hover:opacity-90 transition-all">
+                    Filtrar
+                </button>
+                <a href="{% url 'historial_movimientos' %}" class="px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Insumo</th>
-                            <th>Tipo</th>
-                            <th>Cantidad</th>
-                            <th>Stock Anterior</th>
-                            <th>Stock Nuevo</th>
-                            <th>Motivo</th>
-                            <th>Realizado por</th>
-                            <th>Pedido</th>
-                        </thead>
-                    <tbody>
-                        {% for mov in movimientos %}
-                        <tr>
-                            <td>{{ mov.fecha|date:"d/m/Y H:i:s" }}</td>
-                            <td>{{ mov.insumo.nombre }}</td>
-                            <td>
-                                <span class="badge 
-                                    {% if mov.tipo == 'entrada' %}bg-success
-                                    {% elif mov.tipo == 'salida' %}bg-warning
-                                    {% elif mov.tipo == 'ajuste' %}bg-secondary
-                                    {% elif mov.tipo == 'devolucion' %}bg-info
-                                    {% else %}bg-danger{% endif %}">
-                                    {{ mov.get_tipo_display }}
-                                </span>
-                             </td>
-                            <td>{{ mov.cantidad }} {{ mov.insumo.unidad }}</td>
-                            <td>{{ mov.stock_anterior }}</td>
-                            <td>{{ mov.stock_nuevo }}</td>
-                            <td>{{ mov.motivo|default:"-" }}</td>
-                            <td>{{ mov.realizado_por.username }}</td>
-                            <td>
-                                {% if mov.pedido_relacionado %}
-                                    <a href="{% url 'detalle_pedido' mov.pedido_relacionado.id %}">
-                                        #{{ mov.pedido_relacionado.id }}
-                                    </a>
-                                {% else %}-
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="9" class="text-center">No hay movimientos registrados</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Tabla de movimientos -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white/5 text-[10px] uppercase tracking-widest text-slate-400 font-black border-b border-white/10">
+                        <th class="px-6 py-4">Fecha/Hora</th>
+                        <th class="px-6 py-4">Insumo</th>
+                        <th class="px-6 py-4">Tipo</th>
+                        <th class="px-6 py-4 text-center">Cantidad</th>
+                        <th class="px-6 py-4 text-center">Stock Anterior</th>
+                        <th class="px-6 py-4 text-center">Stock Nuevo</th>
+                        <th class="px-6 py-4">Motivo</th>
+                        <th class="px-6 py-4">Usuario</th>
+                        <th class="px-6 py-4">Pedido</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for mov in movimientos %}
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="px-6 py-4 text-sm text-slate-400 font-mono">{{ mov.fecha|date:"d/m/Y H:i:s" }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                                    <span class="material-symbols-outlined text-sm">inventory_2</span>
+                                </div>
+                                <span class="text-white font-medium">{{ mov.insumo.nombre }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider 
+                                {% if mov.tipo == 'entrada' %}bg-green-500/10 text-green-500 border border-green-500/20
+                                {% elif mov.tipo == 'salida' %}bg-red-500/10 text-red-500 border border-red-500/20
+                                {% elif mov.tipo == 'ajuste' %}bg-amber-500/10 text-amber-500 border border-amber-500/20
+                                {% elif mov.tipo == 'devolucion' %}bg-blue-500/10 text-blue-400 border border-blue-500/20
+                                {% else %}bg-purple-500/10 text-purple-400 border border-purple-500/20{% endif %}">
+                                {{ mov.get_tipo_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="font-mono font-bold {% if mov.tipo == 'entrada' %}text-green-400{% else %}text-red-400{% endif %}">
+                                {% if mov.tipo == 'entrada' %}+{% else %}-{% endif %}{{ mov.cantidad }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center text-white font-mono">{{ mov.stock_anterior }}</td>
+                        <td class="px-6 py-4 text-center text-white font-mono">{{ mov.stock_nuevo }}</td>
+                        <td class="px-6 py-4 text-slate-400 max-w-xs truncate">{{ mov.motivo|default:"—" }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">
+                                    {{ mov.realizado_por.username|slice:":2"|upper }}
+                                </div>
+                                <span class="text-white/60 text-sm">{{ mov.realizado_por.username }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if mov.pedido_relacionado %}
+                                <a href="{% url 'detalle_pedido' mov.pedido_relacionado.id %}" class="text-primary hover:underline text-sm">
+                                    #{{ mov.pedido_relacionado.id }}
+                                </a>
+                            {% else %}
+                                <span class="text-white/30">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="px-6 py-12 text-center text-white/40">
+                            <span class="material-symbols-outlined text-4xl mb-2">history</span>
+                            <p>No hay movimientos registrados</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        {% if movimientos.has_other_pages %}
+        <div class="flex justify-center gap-2 py-4 border-t border-white/10">
+            {% if movimientos.has_previous %}
+            <a href="?page={{ movimientos.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary/20 transition-all">
+                <span class="material-symbols-outlined text-sm">chevron_left</span>
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-1.5 text-sm text-white/60">
+                Página {{ movimientos.number }} de {{ movimientos.paginator.num_pages }}
+            </span>
+            
+            {% if movimientos.has_next %}
+            <a href="?page={{ movimientos.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-primary/20 transition-all">
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Resumen de movimientos -->
+    <div class="glass-card rounded-2xl p-6">
+        <h3 class="text-white font-bold text-lg flex items-center gap-2 mb-4">
+            <span class="material-symbols-outlined text-primary">summarize</span>
+            Resumen de Movimientos
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+                <p class="text-2xl font-bold text-green-400">{{ total_entradas|default:0 }}</p>
+                <p class="text-sm text-white/40">Total Entradas</p>
+            </div>
+            <div class="text-center p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+                <p class="text-2xl font-bold text-red-400">{{ total_salidas|default:0 }}</p>
+                <p class="text-sm text-white/40">Total Salidas</p>
+            </div>
+            <div class="text-center p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <p class="text-2xl font-bold text-amber-400">{{ total_ajustes|default:0 }}</p>
+                <p class="text-sm text-white/40">Ajustes</p>
+            </div>
+            <div class="text-center p-4 rounded-xl bg-primary/10 border border-primary/20">
+                <p class="text-2xl font-bold text-primary">{{ movimientos|length }}</p>
+                <p class="text-sm text-white/40">Total Registros</p>
             </div>
         </div>
     </div>

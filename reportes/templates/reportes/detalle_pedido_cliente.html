@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="p-8 max-w-4xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'panel_cliente' %}" class="text-primary hover:underline flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Volver a mis pedidos
+        </a>
+    </div>
+
+    <div class="glass-card rounded-2xl p-8">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h2 class="text-2xl font-bold text-white">Pedido #{{ pedido.id }}</h2>
+                <p class="text-white/40 text-sm">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider 
+                {% if pedido.estado == 'pendiente' %}bg-amber-500/20 text-amber-400 border border-amber-500/30
+                {% elif pedido.estado == 'diseño' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                {% elif pedido.estado == 'produccion' %}bg-purple-500/20 text-purple-400 border border-purple-500/30
+                {% elif pedido.estado == 'listo' %}bg-green-500/20 text-green-400 border border-green-500/30
+                {% elif pedido.estado == 'entregado' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                {% else %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}">
+                {{ pedido.get_estado_display }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Producto</p>
+                <p class="text-white font-medium">{{ pedido.producto.nombre }}</p>
+            </div>
+            <div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Cantidad</p>
+                <p class="text-white font-medium">{{ pedido.cantidad }} unidades</p>
+            </div>
+            <div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Total</p>
+                <p class="text-white font-medium">Bs {{ pedido.precio_total }}</p>
+            </div>
+            <div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Abonado</p>
+                <p class="text-primary font-medium">Bs {{ pedido.abono }}</p>
+            </div>
+            <div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Saldo Pendiente</p>
+                <p class="font-bold text-{% if pedido.saldo_pendiente > 0 %}warning{% else %}success{% endif %}">
+                    Bs {{ pedido.saldo_pendiente }}
+                </p>
+            </div>
+            {% if pedido.fecha_entrega %}
+            <div>
+                <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Fecha de Entrega</p>
+                <p class="text-white font-medium">{{ pedido.fecha_entrega|date:"d/m/Y H:i" }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if pedido.especificaciones %}
+        <div class="mb-6">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Especificaciones</p>
+            <div class="bg-black/40 rounded-xl p-4 mt-2">
+                <p class="text-white/80">{{ pedido.especificaciones }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if pedido.archivo_diseno %}
+        <div class="mb-6">
+            <p class="text-white/50 text-xs font-bold uppercase tracking-wider">Diseño Adjunto</p>
+            <div class="mt-2">
+                <a href="{{ pedido.archivo_diseno.url }}" target="_blank" class="text-primary hover:underline flex items-center gap-2">
+                    <span class="material-symbols-outlined">file_download</span>
+                    Ver diseño
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="border-t border-white/10 pt-6">
+            <h4 class="text-white font-bold text-sm mb-4">Historial de Estados</h4>
+            <div class="space-y-3">
+                {% for h in historial %}
+                <div class="flex items-center gap-4">
+                    <div class="w-2 h-2 rounded-full bg-primary"></div>
+                    <div>
+                        <p class="text-white text-sm">{{ h.estado_anterior }} → {{ h.estado_nuevo }}</p>
+                        <p class="text-xs text-white/40">{{ h.fecha|date:"d/m/Y H:i" }} • {{ h.cambiado_por.username }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-white/40 text-sm">Sin cambios registrados</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

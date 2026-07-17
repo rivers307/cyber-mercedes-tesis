@@ -1,55 +1,171 @@
 {% extends 'base.html' %}
 
-{% block title %}Registrar Entrada - Cyber Mercedes{% endblock %}
+{% block title %}Registrar Entrada - Inventario{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'dashboard_inventario' %}" class="btn btn-secondary">
-            ← Volver
+<div class="p-8 max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-8">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'dashboard_inventario' %}" class="hover:text-primary transition-colors">Inventario</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Registrar Entrada</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Registrar Entrada</h2>
+            <p class="text-on-surface-variant mt-1">Registrar compra de insumos al inventario</p>
+        </div>
+        <a href="{% url 'dashboard_inventario' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Volver
         </a>
     </div>
 
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h4><i class="bi bi-arrow-down"></i> Registrar Entrada de Insumos</h4>
+    <!-- Formulario -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">arrow_downward</span>
+                Datos de la Entrada
+            </h3>
+            <p class="text-sm text-white/40 mt-1">Seleccione el insumo y la cantidad a ingresar</p>
         </div>
-        <div class="card-body">
-            <form method="POST">
+        <div class="p-8">
+            <form method="POST" class="grid grid-cols-1 gap-6">
                 {% csrf_token %}
                 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Insumo *</label>
-                        <select name="insumo" class="form-select" required>
-                            <option value="">Seleccionar insumo</option>
-                            {% for insumo in insumos %}
-                            <option value="{{ insumo.id }}">
-                                {{ insumo.nombre }} - Stock actual: {{ insumo.stock_actual }} {{ insumo.unidad }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                <!-- Insumo -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Insumo *
+                    </label>
+                    <select name="insumo" id="id_insumo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" required>
+                        <option value="">Seleccionar insumo</option>
+                        {% for insumo in insumos %}
+                        <option value="{{ insumo.id }}" data-stock="{{ insumo.stock_actual }}">
+                            {{ insumo.nombre }} - Stock actual: {{ insumo.stock_actual }} {{ insumo.unidad }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div id="stock-info" class="text-xs text-white/30 mt-1 hidden">
+                        Stock actual: <span id="stock-actual">0</span> unidades
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Cantidad *</label>
-                        <input type="number" name="cantidad" class="form-control" placeholder="Cantidad a ingresar" required>
+                </div>
+                
+                <!-- Cantidad -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Cantidad *
+                    </label>
+                    <input type="number" name="cantidad" id="id_cantidad" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                           placeholder="Cantidad a ingresar" min="1" required>
+                    <p class="text-[9px] text-white/30">El stock se incrementará automáticamente con esta cantidad.</p>
+                </div>
+                
+                <!-- Motivo -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                        Motivo / Nota
+                    </label>
+                    <textarea name="motivo" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" 
+                              rows="3" placeholder="Ej: Compra a proveedor X, Factura #1234, Nota de entrega #5678">Compra de insumos</textarea>
+                </div>
+
+                <!-- Resumen (previo al guardado) -->
+                <div class="glass-card p-4 rounded-xl border-l-4 border-primary">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary">info</span>
+                        <div>
+                            <p class="text-sm text-white/80 font-medium">Resumen de la operación</p>
+                            <div class="grid grid-cols-2 gap-2 text-xs text-white/50 mt-2">
+                                <div>
+                                    <span>Insumo:</span>
+                                    <span id="resumen-insumo" class="text-white font-medium">—</span>
+                                </div>
+                                <div>
+                                    <span>Cantidad:</span>
+                                    <span id="resumen-cantidad" class="text-white font-medium">—</span>
+                                </div>
+                                <div>
+                                    <span>Stock actual:</span>
+                                    <span id="resumen-stock" class="text-white font-medium">—</span>
+                                </div>
+                                <div>
+                                    <span>Nuevo stock:</span>
+                                    <span id="resumen-nuevo" class="text-primary font-medium">—</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Motivo</label>
-                    <textarea name="motivo" class="form-control" rows="3" placeholder="Ej: Compra a proveedor X, Factura #123">Compra de insumos</textarea>
+                
+                <!-- Botones -->
+                <div class="flex justify-end gap-4 pt-4 border-t border-white/10">
+                    <a href="{% url 'dashboard_inventario' %}" class="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white/60 hover:bg-white/10 transition-all">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-green-500/30 hover:opacity-90 transition-all">
+                        Registrar Entrada
+                    </button>
                 </div>
-
-                <div class="alert alert-info">
-                    <strong>Información:</strong> Registrar entrada aumenta el stock del insumo seleccionado.
-                </div>
-
-                <button type="submit" class="btn btn-success">
-                    <i class="bi bi-check-circle"></i> Registrar Entrada
-                </button>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    // Mostrar información del stock al seleccionar un insumo
+    const insumoSelect = document.getElementById('id_insumo');
+    const stockInfo = document.getElementById('stock-info');
+    const stockActual = document.getElementById('stock-actual');
+    const cantidadInput = document.getElementById('id_cantidad');
+    
+    // Resumen
+    const resumenInsumo = document.getElementById('resumen-insumo');
+    const resumenCantidad = document.getElementById('resumen-cantidad');
+    const resumenStock = document.getElementById('resumen-stock');
+    const resumenNuevo = document.getElementById('resumen-nuevo');
+    
+    function actualizarResumen() {
+        const selected = insumoSelect.options[insumoSelect.selectedIndex];
+        const cantidad = parseInt(cantidadInput.value) || 0;
+        
+        if (selected && selected.value) {
+            const nombre = selected.text.split(' - ')[0];
+            const stock = parseInt(selected.dataset.stock) || 0;
+            
+            resumenInsumo.textContent = nombre;
+            resumenCantidad.textContent = cantidad + ' unidades';
+            resumenStock.textContent = stock + ' unidades';
+            resumenNuevo.textContent = (stock + cantidad) + ' unidades';
+        } else {
+            resumenInsumo.textContent = '—';
+            resumenCantidad.textContent = '—';
+            resumenStock.textContent = '—';
+            resumenNuevo.textContent = '—';
+        }
+    }
+    
+    insumoSelect.addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        if (selected && selected.value) {
+            stockInfo.classList.remove('hidden');
+            stockActual.textContent = selected.dataset.stock || '0';
+        } else {
+            stockInfo.classList.add('hidden');
+        }
+        actualizarResumen();
+    });
+    
+    cantidadInput.addEventListener('input', actualizarResumen);
+    
+    // Inicializar resumen al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        if (insumoSelect.value) {
+            stockInfo.classList.remove('hidden');
+            stockActual.textContent = insumoSelect.options[insumoSelect.selectedIndex].dataset.stock || '0';
+        }
+        actualizarResumen();
+    });
+</script>
 {% endblock %}

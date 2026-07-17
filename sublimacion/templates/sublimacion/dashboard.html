@@ -1,134 +1,243 @@
 {% extends 'base.html' %}
 
-{% block title %}Sublimación - Cyber Mercedes{% endblock %}
+{% block title %}Gestión de Pedidos - Sublimación{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Botón para volver al Dashboard Principal -->
-    <div class="mb-3">
-        <a href="/dashboard/" class="btn btn-secondary">
-            ← Volver al Dashboard Principal
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+    <div>
+        <h2 class="text-3xl font-bold text-white tracking-tight">Gestión de Pedidos</h2>
+        <p class="text-purple-400/70 mt-1 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            Control de producción y estados
+        </p>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/30">search</span>
+            <input class="pl-12 pr-6 py-3 bg-white/5 border border-white/10 rounded-2xl w-64 lg:w-80 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-white placeholder-white/20" 
+            placeholder="Buscar pedido, cliente o diseño..." type="text" id="buscarPedido"/>
+        </div>
+        <a href="{% url 'gestionar_productos' %}" class="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+            <span class="material-symbols-outlined text-sm">inventory</span>
+            Productos
+        </a>
+        <a href="{% url 'crear_pedido_form' %}" class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl text-sm font-black shadow-lg shadow-purple-500/30 hover:scale-[1.02] transition-all">
+            <span class="material-symbols-outlined text-lg">add</span>
+            NUEVO PEDIDO
         </a>
     </div>
+</div>
 
-    <div class="row mb-4">
-        <div class="col">
-            <h2><i class="bi bi-cup-straw"></i> Módulo de Sublimación</h2>
-            <p class="text-muted">Gestión de pedidos personalizados (tazas, camisas, gorras)</p>
+    <!-- Tarjetas de estadísticas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-white/40 text-[10px] uppercase">Pendientes</p>
+            <p class="text-2xl font-bold text-white">{{ estadisticas.pendientes }}</p>
         </div>
-        <div class="col text-end">
-            <a href="{% url 'crear_pedido_form' %}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Nuevo Pedido
-            </a>
-            <a href="{% url 'gestionar_productos' %}" class="btn btn-info">
-                <i class="bi bi-box"></i> Productos
-            </a>
+        <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-white/40 text-[10px] uppercase">Diseño</p>
+            <p class="text-2xl font-bold text-white">{{ estadisticas.diseño }}</p>
+        </div>
+        <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-white/40 text-[10px] uppercase">Producción</p>
+            <p class="text-2xl font-bold text-white">{{ estadisticas.produccion }}</p>
+        </div>
+        <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-white/40 text-[10px] uppercase">Listos</p>
+            <p class="text-2xl font-bold text-white">{{ estadisticas.listos }}</p>
+        </div>
+        <div class="glass-card rounded-xl p-4 text-center">
+            <p class="text-white/40 text-[10px] uppercase">Entregados</p>
+            <p class="text-2xl font-bold text-white">{{ estadisticas.entregados }}</p>
         </div>
     </div>
 
-    <!-- Tarjetas de Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-md-2 mb-3">
-            <div class="card text-center bg-warning text-dark">
-                <div class="card-body">
-                    <h3>{{ estadisticas.pendientes }}</h3>
-                    <small>📋 Pendientes</small>
+    <div class="grid grid-cols-12 gap-8">
+        <!-- Columna Izquierda: Tabla de pedidos -->
+        <div class="col-span-12 lg:col-span-8">
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center">
+                    <h3 class="font-bold text-white">Listado Maestro de Pedidos</h3>
+                    <div class="flex gap-3">
+                        <a href="{% url 'exportar_reporte' 'pedidos' %}" class="text-[10px] font-black px-3 py-1.5 border border-white/10 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors uppercase tracking-widest">Exportar CSV</a>
+                        <button class="text-[10px] font-black px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-slate-300 hover:text-primary transition-colors uppercase tracking-widest flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">filter_list</span> Filtrar
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white/5 text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] border-b border-white/10">
+                                <th class="px-6 py-4">Identificador</th>
+                                <th class="px-6 py-4">Cliente</th>
+                                <th class="px-6 py-4">Producto</th>
+                                <th class="px-6 py-4 text-center">Cant.</th>
+                                <th class="px-6 py-4">Estado</th>
+                                <th class="px-6 py-4">Entrega</th>
+                                <th class="px-6 py-4 text-right">Acciones</th>
+                             </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {% for pedido in pedidos_recientes %}
+                            <tr class="hover:bg-white/5 transition-all cursor-pointer group" onclick="window.location.href='?pedido={{ pedido.id }}'">
+                                <td class="px-6 py-4 text-xs font-black text-purple-400">#{{ pedido.id }}</td>
+                                <td class="px-6 py-4 text-sm font-medium text-white">{{ pedido.nombre_cliente }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-400 italic">{{ pedido.producto.nombre }}</td>
+                                <td class="px-6 py-4 text-sm text-center text-white">{{ pedido.cantidad }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider 
+                                        {% if pedido.estado == 'pendiente' %}bg-amber-500/10 text-amber-500 border border-amber-500/20
+                                        {% elif pedido.estado == 'diseño' %}bg-blue-500/10 text-blue-400 border border-blue-500/20
+                                        {% elif pedido.estado == 'produccion' %}bg-purple-500/10 text-purple-400 border border-purple-500/20
+                                        {% elif pedido.estado == 'listo' %}bg-green-500/10 text-green-500 border border-green-500/20
+                                        {% elif pedido.estado == 'entregado' %}bg-emerald-500/10 text-emerald-500 border border-emerald-500/20
+                                        {% else %}bg-red-500/10 text-red-500 border border-red-500/20{% endif %}">
+                                        {{ pedido.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-500">{{ pedido.fecha_entrega|date:"d/m/Y"|default:"Pendiente" }}</td>
+                                <td class="px-6 py-4 text-right space-x-2" onclick="event.stopPropagation()">
+                                    <a href="{% url 'detalle_pedido' pedido.id %}" class="px-4 py-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[10px] font-black rounded-lg hover:bg-purple-500 hover:text-white transition-all uppercase tracking-widest inline-block">Ver Detalle</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="px-6 py-8 text-center text-white/40">No hay pedidos registrados</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="col-md-2 mb-3">
-            <div class="card text-center bg-info text-white">
-                <div class="card-body">
-                    <h3>{{ estadisticas.diseño }}</h3>
-                    <small>🎨 En Diseño</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 mb-3">
-            <div class="card text-center bg-primary text-white">
-                <div class="card-body">
-                    <h3>{{ estadisticas.produccion }}</h3>
-                    <small>🖨️ Producción</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 mb-3">
-            <div class="card text-center bg-success text-white">
-                <div class="card-body">
-                    <h3>{{ estadisticas.listos }}</h3>
-                    <small>✅ Listos</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 mb-3">
-            <div class="card text-center bg-secondary text-white">
-                <div class="card-body">
-                    <h3>{{ estadisticas.entregados }}</h3>
-                    <small>🎁 Entregados</small>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Pedidos Recientes -->
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h4><i class="bi bi-clock-history"></i> Pedidos Recientes</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Cliente</th>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Estado</th>
-                            <th>Total</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pedido in pedidos_recientes %}
-                        <tr>
-                            <td>{{ pedido.id }}</td>
-                            <td>{{ pedido.nombre_cliente }}</td>
-                            <td>{{ pedido.producto.nombre }}</td>
-                            <td>{{ pedido.cantidad }}</td>
-                            <td>
-                                <span class="badge 
-                                    {% if pedido.estado == 'pendiente' %}bg-warning
-                                    {% elif pedido.estado == 'diseño' %}bg-info
-                                    {% elif pedido.estado == 'produccion' %}bg-primary
-                                    {% elif pedido.estado == 'listo' %}bg-success
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ pedido.get_estado_display }}
-                                </span>
-                            </td>
-                            <td>Bs {{ pedido.precio_total }}</td>
-                            <td>
-                                <a href="{% url 'detalle_pedido' pedido.id %}" class="btn btn-sm btn-outline-primary">
-                                    Ver
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center">
-                                No hay pedidos registrados
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <!-- Columna Derecha: Detalles del Pedido Seleccionado -->
+        <div class="col-span-12 lg:col-span-4 space-y-8">
+            {% if pedido_actual %}
+            <div class="glass-card rounded-2xl flex flex-col h-full overflow-hidden">
+                <div class="px-6 py-4 border-b border-white/10 bg-white/5">
+                    <h3 class="font-bold flex items-center justify-between">
+                        <span class="text-white uppercase tracking-wider text-sm">Detalles del Pedido</span>
+                        <span class="text-[10px] font-black text-purple-400 bg-purple-500/10 px-3 py-1 rounded-md border border-purple-500/30">#{{ pedido_actual.id }}</span>
+                    </h3>
+                </div>
+                <div class="p-6 space-y-6 flex-1 overflow-y-auto max-h-[600px]">
+                    <!-- Vista previa del diseño -->
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Vista Previa del Diseño</label>
+                        <div class="relative group aspect-square rounded-2xl bg-black/80 overflow-hidden border border-white/10">
+                            {% if pedido_actual.archivo_diseno %}
+                                <img src="{{ pedido_actual.archivo_diseno.url }}" class="absolute inset-0 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" alt="Diseño">
+                                <div class="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[1px]">
+                                    <a href="{{ pedido_actual.archivo_diseno.url }}" target="_blank" class="bg-white text-black p-4 rounded-full shadow-2xl">
+                                        <span class="material-symbols-outlined">zoom_in</span>
+                                    </a>
+                                </div>
+                            {% else %}
+                                <div class="absolute inset-0 flex items-center justify-center text-white/30">Sin imagen</div>
+                            {% endif %}
+                        </div>
+                        {% if pedido_actual.archivo_diseno %}
+                        <div class="flex justify-between items-center text-[10px] font-bold">
+                            <span class="text-slate-500 italic">{{ pedido_actual.archivo_diseno.name|cut:"disenos/" }}</span>
+                            <a href="{{ pedido_actual.archivo_diseno.url }}" download class="text-primary uppercase tracking-widest hover:neon-text-glow transition-all flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">download</span> Descargar Original
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Botones rápidos de estado -->
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Estado del Proceso</label>
+                        <form method="POST" action="{% url 'cambiar_estado' pedido_actual.id %}">
+                            {% csrf_token %}
+                            <div class="grid grid-cols-3 gap-2 p-1.5 bg-black/60 rounded-xl border border-white/5">
+                                <button type="submit" name="estado" value="pendiente" class="py-2 text-[10px] font-black rounded-lg uppercase transition-colors {% if pedido_actual.estado == 'pendiente' %}bg-amber-500/20 text-amber-500 border border-amber-500/30{% else %}text-slate-500 hover:text-slate-300{% endif %}">Pendiente</button>
+                                <button type="submit" name="estado" value="produccion" class="py-2 text-[10px] font-black rounded-lg uppercase transition-colors {% if pedido_actual.estado == 'produccion' %}bg-purple-500/20 text-purple-400 border border-purple-500/30{% else %}text-slate-500 hover:text-slate-300{% endif %}">Producción</button>
+                                <button type="submit" name="estado" value="listo" class="py-2 text-[10px] font-black rounded-lg uppercase transition-colors {% if pedido_actual.estado == 'listo' %}bg-green-500/20 text-green-500 border border-green-500/30{% else %}text-slate-500 hover:text-slate-300{% endif %}">Listo</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Notas Técnicas de Producción (con guardado) -->
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Notas Técnicas de Producción</label>
+                        <form method="POST" action="{% url 'guardar_notas_produccion' pedido_actual.id %}">
+                            {% csrf_token %}
+                            <textarea name="notas_produccion" class="w-full h-28 bg-black/40 border border-white/10 rounded-xl text-sm p-3 text-slate-200 placeholder:text-slate-700 focus:bg-primary/5 transition-all resize-none" 
+                                      placeholder="Especificar parámetros: Temperatura (200°C), Tiempo (60s), Presión Media...">{{ pedido_actual.notas_produccion|default:"" }}</textarea>
+                            <div class="flex justify-end mt-2">
+                                <button type="submit" class="bg-primary/20 border border-primary/30 text-primary px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Guardar Notas</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Bitácora de Actividad -->
+                    <div class="space-y-4 pt-4 border-t border-white/5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Bitácora de Actividad</label>
+                        <div class="space-y-4">
+                            {% for h in pedido_actual.historial.all|slice:":3" %}
+                            <div class="flex gap-3">
+                                <div class="relative">
+                                    <div class="size-2.5 rounded-full bg-purple-400 mt-1.5"></div>
+                                    <div class="absolute top-4 left-1 bottom-0 w-[2px] bg-white/5"></div>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-white">Estado: <span class="text-purple-400">{{ h.estado_nuevo }}</span></p>
+                                    <p class="text-[10px] text-slate-500 font-medium mt-1">{{ h.cambiado_por.username }} • {{ h.fecha|timesince }} atrás</p>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-white/40 text-sm">Sin cambios registrados</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Información de Pagos resumida -->
+                    <div class="space-y-3 pt-4 border-t border-white/5">
+                        <div class="flex justify-between">
+                            <span class="text-white/60 text-sm">Total:</span>
+                            <span class="text-white font-bold">Bs {{ pedido_actual.precio_total }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/60 text-sm">Abonado:</span>
+                            <span class="text-primary font-bold">Bs {{ pedido_actual.abono }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-white/60 text-sm">Saldo Pendiente:</span>
+                            <span class="text-{% if pedido_actual.saldo_pendiente > 0 %}warning{% else %}success{% endif %} font-bold">
+                                Bs {{ pedido_actual.saldo_pendiente }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 mt-4">
+                        <a href="{% url 'detalle_pedido' pedido_actual.id %}" class="flex-1 bg-gradient-to-r from-purple-600 to-purple-800 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">open_in_new</span> Ver Completo
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="text-center mt-3">
-                <a href="{% url 'lista_pedidos' %}" class="btn btn-outline-success">
-                    Ver Todos los Pedidos
-                </a>
+            {% else %}
+            <div class="glass-card rounded-2xl p-8 text-center">
+                <span class="material-symbols-outlined text-5xl text-white/30">receipt</span>
+                <p class="text-white/40 mt-4">Selecciona un pedido para ver detalles</p>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+    // Búsqueda en tabla
+    document.getElementById('buscarPedido')?.addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
 {% endblock %}

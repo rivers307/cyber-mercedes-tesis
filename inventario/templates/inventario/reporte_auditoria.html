@@ -1,146 +1,271 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Reporte de Auditoría - Cyber Mercedes{% endblock %}
+{% block title %}Reporte de Auditoría - Cyber Comunal Mercedes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="mb-3">
-        <a href="{% url 'lista_auditorias' %}" class="btn btn-secondary">
-            ← Volver a Auditorías
-        </a>
-        <button onclick="window.print()" class="btn btn-primary float-end">
-            <i class="bi bi-printer"></i> Imprimir Reporte
-        </button>
-    </div>
-
-    <!-- Encabezado del Reporte -->
-    <div class="card mb-4">
-        <div class="card-header bg-success text-white text-center">
-            <h3>Cyber Comunitario "Nuestra Señora de las Mercedes"</h3>
-            <h4>Reporte de Auditoría de Inventario</h4>
+<div class="p-8 space-y-8 max-w-6xl mx-auto" id="reporte-contenido">
+    <!-- Botones de acción (solo visibles en pantalla) -->
+    <div class="flex justify-between items-start no-print">
+        <div>
+            <nav class="flex items-center gap-2 text-[10px] font-bold text-primary/50 uppercase tracking-[0.2em] mb-2">
+                <a href="{% url 'lista_auditorias' %}" class="hover:text-primary transition-colors">Auditorías</a>
+                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                <span class="text-primary">Reporte</span>
+            </nav>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight">Reporte de Auditoría</h2>
+            <p class="text-on-surface-variant mt-1">{{ auditoria.nombre }} - {{ auditoria.fecha_inicio|date:"d/m/Y" }} al {{ auditoria.fecha_fin|date:"d/m/Y" }}</p>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <p><strong>Nombre:</strong> {{ auditoria.nombre }}</p>
-                    <p><strong>Tipo:</strong> {{ auditoria.get_tipo_display }}</p>
-                    <p><strong>Período:</strong> {{ auditoria.fecha_inicio|date:"d/m/Y" }} - {{ auditoria.fecha_fin|date:"d/m/Y" }}</p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Fecha Reporte:</strong> {% now "d/m/Y H:i" %}</p>
-                    <p><strong>Estado:</strong> <span class="badge bg-secondary">✅ Finalizada</span></p>
-                </div>
-            </div>
+        <div class="flex gap-3 no-print">
+            <button onclick="window.print()" class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-accent-purple text-white rounded-xl text-sm font-black shadow-lg shadow-primary/30 hover:scale-[1.02] transition-all">
+                <span class="material-symbols-outlined text-sm">print</span>
+                Imprimir / PDF
+            </button>
+            <a href="{% url 'lista_auditorias' %}" class="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all text-slate-300">
+                <span class="material-symbols-outlined text-sm">arrow_back</span>
+                Volver
+            </a>
         </div>
     </div>
 
-    <!-- Resumen de Justificaciones -->
-    <div class="card mb-4">
-        <div class="card-header bg-info text-white">
-            <h5>📊 Resumen de Justificaciones</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                {% for key, count in resumen_justificaciones.items %}
-                <div class="col-md-4">
-                    <div class="alert alert-secondary">
-                        <strong>{{ count }}</strong> - {{ key }}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            <div class="alert alert-warning">
-                <strong>💰 Costo Total de Reposición:</strong> Bs {{ costo_total_reposicion|floatformat:2 }}
+    <!-- ============================================ -->
+    <!-- CONTENIDO DEL REPORTE (para impresión)       -->
+    <!-- ============================================ -->
+<div id="reporte-impresion" class="bg-white rounded-2xl p-8 text-gray-900 shadow-lg">
+    <!-- Encabezado con logo -->
+    <div class="text-center border-b-2 border-purple-300 pb-6 mb-6">
+        <div class="flex justify-center items-center gap-4 mb-4">
+            <!-- ⭐ LOGO -->
+            {% load static %}
+            <img src="{% static 'img/logo_cyber_comunal.png' %}" alt="Logo Cyber Comunal" class="print-logo-img" style="height:70px; width:auto; margin-right:10px;">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Cyber Comunal</h1>
+                <p class="text-gray-600 text-sm font-medium">TECH &amp; SUBLIMACIÓN</p>
             </div>
         </div>
+        <div class="text-xs text-gray-500 space-y-1">
+            <p>Dirección: Av. Principal, C.C. Las Mercedes, Nivel 1, Local 4B, Ciudad de la Amistad</p>
+            <p>Teléfono: +58 412-5551234 &nbsp;|&nbsp; Email: cyber.comunal.ve@gmail.com</p>
+        </div>
+        <div class="w-24 h-1 bg-purple-600 mx-auto mt-3 rounded-full"></div>
     </div>
 
-    <!-- Detalle de Conciliaciones -->
-    <div class="card">
-        <div class="card-header bg-dark text-white">
-            <h5>📋 Detalle de Conciliaciones</h5>
+    <!-- Título del reporte -->
+    <div class="text-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">REPORTE DE AUDITORÍA DE INVENTARIO</h2>
+        <p class="text-lg text-purple-700 font-semibold">{{ auditoria.get_tipo_display|upper }} / PERÍODO {{ auditoria.fecha_inicio|date:"F Y" }} - {{ auditoria.fecha_fin|date:"F Y" }}</p>
+        <p class="text-sm text-gray-500 mt-1">REPORTE DETALLADO # {{ codigo_reporte }}</p>
+    </div>
+
+    <!-- El resto del reporte sigue igual... -->
+    <!-- (Información general, resumen ejecutivo, tablas, firmas, etc.) -->
+        <!-- Información general -->
+        <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
+            <div><span class="font-bold text-gray-700">Nombre de la Auditoría:</span> {{ auditoria.nombre }}</div>
+            <div><span class="font-bold text-gray-700">Tipo:</span> {{ auditoria.get_tipo_display }}</div>
+            <div><span class="font-bold text-gray-700">Período:</span> {{ auditoria.fecha_inicio|date:"d/m/Y" }} - {{ auditoria.fecha_fin|date:"d/m/Y" }}</div>
+            <div><span class="font-bold text-gray-700">Fecha del Reporte:</span> {% now "d/m/Y H:i" %}</div>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Item</th>
-                            <th>Tipo</th>
-                            <th>Teórico</th>
-                            <th>Físico</th>
-                            <th>Variación</th>
-                            <th>Justificación</th>
-                            <th>Costo Reposición</th>
-                        </thead>
-                    <tbody>
+
+        <!-- RESUMEN EJECUTIVO -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">RESUMEN EJECUTIVO</h3>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-green-50 rounded-xl p-4 text-center border border-green-200">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Monto Total Auditado</p>
+                    <p class="text-2xl font-bold text-green-700">Bs {{ monto_total_auditado|floatformat:2 }}</p>
+                </div>
+                <div class="bg-blue-50 rounded-xl p-4 text-center border border-blue-200">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ajustes Positivos</p>
+                    <p class="text-2xl font-bold text-blue-600">+ Bs {{ ajustes_positivos|floatformat:2 }}</p>
+                </div>
+                <div class="bg-red-50 rounded-xl p-4 text-center border border-red-200">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ajustes Negativos</p>
+                    <p class="text-2xl font-bold text-red-600">- Bs {{ ajustes_negativos|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DETALLE DE CONCILIACIONES -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">DETALLE DE CONCILIACIONES</h3>
+            {% if conciliaciones %}
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 border-b-2 border-gray-300">
+                            <th class="px-4 py-2 text-left font-bold">DESCRIPCIÓN</th>
+                            <th class="px-4 py-2 text-center font-bold">CANTIDAD</th>
+                            <th class="px-4 py-2 text-right font-bold">MONTO TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
                         {% for c in conciliaciones %}
                         <tr>
-                            <td>
+                            <td class="px-4 py-2">
                                 {% if c.insumo %}
                                     {{ c.insumo.nombre }}
+                                    <span class="text-xs text-gray-400 ml-2">(Consumible)</span>
                                 {% else %}
                                     {{ c.activo.nombre }}
+                                    <span class="text-xs text-gray-400 ml-2">(Activo Fijo)</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                {% if c.insumo %}Consumible{% else %}Activo Fijo{% endif %}
-                            </td>
-                            <td>
+                            <td class="px-4 py-2 text-center">
                                 {% if c.insumo %}
-                                    {{ c.cantidad_teorica }}
-                                {% else %}
-                                    {{ c.estado_teorico }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if c.insumo %}
-                                    {{ c.cantidad_fisica }}
-                                {% else %}
-                                    {{ c.estado_fisico }}
-                                {% endif %}
-                            </td>
-                            <td class="{% if c.variacion and c.variacion > 0 %}text-danger{% elif c.variacion and c.variacion < 0 %}text-success{% endif %}">
-                                {% if c.variacion %}
-                                    {{ c.variacion }}
+                                    {{ c.variacion }} unidades
                                 {% else %}
                                     Cambio de estado
                                 {% endif %}
                             </td>
-                            <td>{{ c.get_justificacion_display }}</td>
-                            <td>Bs {{ c.costo_reposicion|floatformat:2 }}</td>
+                            <td class="px-4 py-2 text-right font-mono">
+                                {% if c.costo_reposicion %}
+                                    Bs {{ c.costo_reposicion|floatformat:2 }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-gray-500 text-center py-4">No hay conciliaciones registradas para esta auditoría.</p>
+            {% endif %}
+        </div>
+
+        <!-- JUSTIFICACIONES DE DIFERENCIAS -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4">JUSTIFICACIONES DE DIFERENCIAS</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 border-b-2 border-gray-300">
+                            <th class="px-4 py-2 text-left font-bold">ITEM</th>
+                            <th class="px-4 py-2 text-left font-bold">JUSTIFICACIÓN</th>
+                            <th class="px-4 py-2 text-right font-bold">COSTO REPOSICIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for c in conciliaciones %}
+                        <tr>
+                            <td class="px-4 py-2">
+                                {% if c.insumo %}{{ c.insumo.nombre }}{% else %}{{ c.activo.nombre }}{% endif %}
+                            </td>
+                            <td class="px-4 py-2 text-sm text-gray-600">{{ c.get_justificacion_display }}</td>
+                            <td class="px-4 py-2 text-right font-mono">
+                                {% if c.costo_reposicion %}
+                                    Bs {{ c.costo_reposicion|floatformat:2 }}
+                                {% else %}
+                                    <span class="text-gray-400">—</span>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center">No hay conciliaciones registradas</td>
+                            <td colspan="3" class="text-center py-4 text-gray-500">No hay justificaciones registradas.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- Firmas -->
-    <div class="row mt-5">
-        <div class="col-md-6 text-center">
-            <hr>
-            <p>_________________________</p>
-            <p>Responsable del Cyber</p>
+        <!-- RESUMEN DE JUSTIFICACIONES Y COSTO TOTAL DE REPOSICIÓN -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div>
+                <h4 class="font-bold text-gray-700 mb-2">Resumen de Justificaciones</h4>
+                {% if resumen_justificaciones %}
+                    <ul class="text-sm space-y-1">
+                    {% for key, count in resumen_justificaciones.items %}
+                        <li class="flex justify-between border-b border-gray-100 py-1">
+                            <span class="text-gray-600">{{ key|cut:"_"|title }}</span>
+                            <span class="font-bold text-purple-700">{{ count }}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-gray-500 text-sm">Sin justificaciones</p>
+                {% endif %}
+            </div>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p class="text-gray-700 font-bold">💰 Monto Total de Reposición</p>
+                <p class="text-2xl font-bold text-amber-600">Bs {{ costo_total_reposicion|floatformat:2 }}</p>
+            </div>
         </div>
-        <div class="col-md-6 text-center">
-            <hr>
-            <p>_________________________</p>
-            <p>Comisión de Contraloría Comunal</p>
+
+        <!-- FIRMAS -->
+        <div class="grid grid-cols-2 gap-12 mt-8 pt-8 border-t-2 border-gray-300">
+            <div class="text-center">
+                <div class="border-t-2 border-gray-400 pt-6 mt-4">
+                    <p class="font-medium text-gray-800">_________________________</p>
+                    <p class="text-sm text-gray-500 mt-2">Auditor Responsable</p>
+                    <p class="text-xs text-gray-400">{{ user.username }} ({{ user.id|stringformat:"AD%02d" }})</p>
+                </div>
+            </div>
+            <div class="text-center">
+                <div class="border-t-2 border-gray-400 pt-6 mt-4">
+                    <p class="font-medium text-gray-800">_________________________</p>
+                    <p class="text-sm text-gray-500 mt-2">Comisión de Contraloría Comunal</p>
+                    <p class="text-xs text-gray-400">(Punto de Control)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fecha de cierre -->
+        <div class="text-center mt-8 pt-4 border-t border-gray-200">
+            <p class="text-sm text-gray-600">
+                Fecha de Recepción y Cierre: <span class="font-bold">{% now "d/m/Y" %}</span>
+            </p>
+        </div>
+
+        <!-- Pie de página -->
+        <div class="text-center mt-6 pt-4 border-t border-gray-200">
+            <p class="text-xs text-gray-400">Documento generado por el Sistema Inteligente de Gestión del Cyber Comunitario "Nuestra Señora de las Mercedes"</p>
+            <p class="text-xs text-gray-400">Este reporte es un documento oficial de auditoría de inventario.</p>
         </div>
     </div>
 </div>
 
 <style>
-    @media print {
-        .btn, .mb-3, .float-end {
-            display: none;
-        }
+@media print {
+    .no-print { display: none !important; }
+    aside, header, .sidebar-premium { display: none !important; }
+    body { background: white !important; margin: 0; padding: 0; }
+    main, .flex-grow { margin: 0 !important; padding: 0 !important; max-width: 100% !important; overflow: visible !important; }
+    #reporte-impresion { background: white !important; padding: 2rem !important; border-radius: 0 !important; box-shadow: none !important; max-width: 100% !important; margin: 0 auto !important; }
+    #reporte-contenido { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    table { font-size: 11px !important; width: 100% !important; }
+    table td, table th { padding: 6px 8px !important; }
+    .page-break { page-break-after: always; }
+    .bg-amber-50 { background: #fef3c7 !important; }
+    .bg-green-50 { background: #f0fdf4 !important; }
+    .bg-blue-50 { background: #eff6ff !important; }
+    .bg-red-50 { background: #fef2f2 !important; }
+    .border-amber-200 { border-color: #fcd34d !important; }
+    .border-green-200 { border-color: #86efac !important; }
+    .border-blue-200 { border-color: #93c5fd !important; }
+    .border-red-200 { border-color: #fca5a5 !important; }
+    .text-amber-600 { color: #d97706 !important; }
+    .text-green-700 { color: #15803d !important; }
+    .text-blue-600 { color: #2563eb !important; }
+    .text-red-600 { color: #dc2626 !important; }
+}
+
+/* Asegurar que el logo se vea en impresión */
+.print-logo-img {
+    display: inline-block;
+    max-height: 70px;
+    width: auto;
+}
+
+@media print {
+    .print-logo-img {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        filter: none !important;
+        opacity: 1 !important;
     }
+}
+
 </style>
 {% endblock %}

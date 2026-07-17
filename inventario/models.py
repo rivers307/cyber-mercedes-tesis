@@ -17,6 +17,8 @@ class Categoria(models.Model):
         verbose_name_plural = "Categorías"
         ordering = ['nombre']
 
+# inventario/models.py
+
 class Insumo(models.Model):
     """Insumos/Materiales del inventario"""
     UNIDADES = (
@@ -35,7 +37,11 @@ class Insumo(models.Model):
     stock_actual = models.IntegerField(default=0)
     stock_minimo = models.IntegerField(default=5, help_text="Stock mínimo para alerta")
     stock_maximo = models.IntegerField(default=100, help_text="Stock máximo recomendado")
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    # ⭐ CAMBIOS AQUÍ: precio_unitario se mantiene (calculado automáticamente) y se agrega precio_usd
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Precio en Bs (calculado automáticamente)")
+    precio_usd = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Precio en dólares (USD)")
+    
     ubicacion = models.CharField(max_length=100, blank=True, help_text="Ubicación en el almacén")
     proveedor = models.CharField(max_length=200, blank=True)
     notas = models.TextField(blank=True)
@@ -45,6 +51,22 @@ class Insumo(models.Model):
     
     def necesita_reabastecimiento(self):
         return self.stock_actual <= self.stock_minimo
+    
+    # ⭐ NUEVO MÉTODO: calcular precio en Bs según tasa actual
+    def precio_bs(self):
+        """Calcula el precio en bolívares según la tasa de cambio actual"""
+        from reportes.models import TasaCambio
+        tasa = TasaCambio.objects.first()
+        if tasa:
+            return self.precio_usd * tasa.tasa
+        # Fallback si no hay tasa registrada
+        return self.precio_usd * 60  # valor por defecto
+    
+    # ⭐ SOBREESCRIBIR save para actualizar precio_unitario automáticamente
+    def save(self, *args, **kwargs):
+        # Actualizar precio_unitario en Bs antes de guardar
+        self.precio_unitario = self.precio_bs()
+        super().save(*args, **kwargs)
     
     class Meta:
         verbose_name = "Insumo"
@@ -229,3 +251,42 @@ class ConciliacionInventario(models.Model):
         if self.insumo:
             return f"{self.auditoria.nombre} - {self.insumo.nombre}: {self.variacion}"
         return f"{self.auditoria.nombre} - {self.activo.nombre if self.activo else 'Activo'}"
+    
+class Auditoria(models.Model):
+    """Registro de auditoría para todas las acciones del sistema"""
+    
+    TIPO_ACCIONES = (
+        ('login', '🔐 Inicio de Sesión'),
+        ('logout', '🚪 Cierre de Sesión'),
+        ('crear', '➕ Crear Registro'),
+        ('editar', '✏️ Editar Registro'),
+        ('eliminar', '🗑️ Eliminar Registro'),
+        ('cambiar_estado', '🔄 Cambiar Estado'),
+        ('pago', '💰 Registro de Pago'),
+        ('abono', '💵 Registro de Abono'),
+        ('inventario_entrada', '📥 Entrada de Inventario'),
+        ('inventario_salida', '📤 Salida de Inventario'),
+        ('inventario_ajuste', '🔧 Ajuste de Inventario'),
+        ('exportar', '📎 Exportar Reporte'),
+        ('imprimir', '🖨️ Imprimir'),
+        ('otro', '📌 Otro'),
+    )
+    
+    usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE)
+    accion = models.CharField(max_length=30, choices=TIPO_ACCIONES)
+    modulo = models.CharField(max_length=50, help_text="Módulo donde se realizó la acción")
+    descripcion = models.TextField()
+    ip_origen = models.GenericIPAddressField(null=True, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    
+    # Datos afectados
+    registro_id = models.IntegerField(null=True, blank=True)
+    registro_nombre = models.CharField(max_length=200, blank=True)
+    
+    def __str__(self):
+        return f"{self.fecha.strftime('%d/%m/%Y %H:%M')} - {self.usuario.username} - {self.get_accion_display()}"
+    
+    class Meta:
+        verbose_name = "Auditoría"
+        verbose_name_plural = "Auditorías"
+        ordering = ['-fecha']
