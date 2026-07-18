@@ -1,28 +1,43 @@
 #!/usr/bin/env bash
-set -o errexit
 
+# Salir si pip, migrate o collectstatic fallan
+set -e
+
+echo "=== 1. Instalando dependencias ==="
 pip install -r requirements.txt
+
+echo "=== 2. Recopilando archivos estáticos ==="
 python manage.py collectstatic --no-input
+
+echo "=== 3. Aplicando migraciones ==="
 python manage.py migrate
 
-# Crear o actualizar superusuario de forma segura
-if [[ -n "$DJANGO_SUPERUSER_USERNAME" && -n "$DJANGO_SUPERUSER_PASSWORD" ]]; then
-    python manage.py shell -c "
-from django.contrib.auth import get_user_model;
-User = get_user_model();
-username = '$DJANGO_SUPERUSER_USERNAME';
-password = '$DJANGO_SUPERUSER_PASSWORD';
-email = '$DJANGO_SUPERUSER_EMAIL' or '';
-try:
-    user = User.objects.get(username=username);
-    user.set_password(password);
-    user.is_superuser = True;
-    user.is_staff = True;
-    user.email = email if email else user.email;
-    user.save();
-    print(f'Superusuario \"{username}\" actualizado correctamente.');
-except User.DoesNotExist:
-    User.objects.create_superuser(username=username, email=email, password=password);
-    print(f'Superusuario \"{username}\" creado correctamente.');
+echo "=== 4. Configurando superusuario (sin fallar) ==="
+python manage.py shell -c "
+import os
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@admin.com')
+password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
+
+if not password:
+    print('⚠️  Contraseña no definida. Omitiendo creación de superusuario.')
+else:
+    try:
+        user = User.objects.get(username=username)
+        user.set_password(password)
+        user.is_superuser = True
+        user.is_staff = True
+        user.email = email
+        user.save()
+        print(f'✅ Superusuario \"{username}\" ACTUALIZADO correctamente.')
+    except User.DoesNotExist:
+        User.objects.create_superuser(username=username, email=email, password=password)
+        print(f'✅ Superusuario \"{username}\" CREADO correctamente.')
+    except Exception as e:
+        print(f'⚠️  Error inesperado: {e}. El despliegue continúa...')
 "
-fi
+
+echo "=== 🎉 Build completado exitosamente ==="
