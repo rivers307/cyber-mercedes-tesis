@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# Salir si pip, migrate o collectstatic fallan
 set -e
 
 echo "=== 1. Instalando dependencias ==="
@@ -12,7 +11,7 @@ python manage.py collectstatic --no-input
 echo "=== 3. Aplicando migraciones ==="
 python manage.py migrate
 
-echo "=== 4. Configurando superusuario (sin fallar) ==="
+echo "=== 4. Configurando superusuario (crea o actualiza) ==="
 python manage.py shell -c "
 import os
 from django.contrib.auth import get_user_model
