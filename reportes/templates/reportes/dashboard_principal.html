@@ -127,7 +127,7 @@
                 </a>
 
                 <!-- Nuevo Pedido - CORREGIDO -->
-                <a href="{% url 'sublimacion_dashboard' %}" class="w-full bg-gradient-to-r from-pink-600 to-purple-700 text-white p-4 rounded-xl flex items-center justify-between group hover:-translate-y-1 transition-all">
+                <a href="{% url 'sublimacion:dashboard_pedidos' %}" class="w-full bg-gradient-to-r from-pink-600 to-purple-700 text-white p-4 rounded-xl flex items-center justify-between group hover:-translate-y-1 transition-all">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                             <span class="material-symbols-outlined">add_shopping_cart</span>
@@ -171,11 +171,11 @@
         <div class="lg:col-span-2 glass-card rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-white/10 flex justify-between items-center">
                 <h3 class="text-white font-bold text-lg">Pedidos de Sublimación</h3>
-                <a href="{% url 'sublimacion_dashboard' %}" class="text-purple-400 text-xs font-bold uppercase tracking-widest hover:underline">Gestionar todos</a>
+                <a href="{% url 'sublimacion:dashboard_pedidos' %}" class="text-purple-400 text-xs font-bold uppercase tracking-widest hover:underline">Gestionar todos</a>
             </div>
             <div class="divide-y divide-white/5">
                 {% for pedido in ultimos_pedidos|slice:":3" %}
-                <div class="p-5 hover:bg-white/5 transition-all cursor-pointer" onclick="window.location.href='{% url 'sublimacion_dashboard' %}'"> 
+                <div class="p-5 hover:bg-white/5 transition-all cursor-pointer" onclick="window.location.href='{% url 'sublimacion:dashboard_pedidos' %}'"> 
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
