@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Mis Pedidos{% endblock %}
+{% block content %}
+<div class="p-8">
+    <h2 class="text-2xl font-bold text-white">Mis Pedidos</h2>
+    <div class="mt-6 space-y-4">
+        {% for pedido in pedidos %}
+        <div class="glass-card rounded-2xl p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-white font-bold">#{{ pedido.id }} - {{ pedido.producto.nombre }}</p>
+                    <p class="text-white/60 text-sm">Cantidad: {{ pedido.cantidad }}</p>
+                    <p class="text-white/60 text-sm">Total: Bs {{ pedido.precio_total }}</p>
+                    <p class="text-white/60 text-sm">Fecha: {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div>
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold 
+                        {% if pedido.estado == 'pendiente' %}bg-amber-500/30 text-amber-300
+                        {% elif pedido.estado == 'diseño' %}bg-blue-500/30 text-blue-300
+                        {% elif pedido.estado == 'produccion' %}bg-purple-500/30 text-purple-300
+                        {% elif pedido.estado == 'listo' %}bg-green-500/30 text-green-300
+                        {% elif pedido.estado == 'entregado' %}bg-emerald-500/30 text-emerald-300
+                        {% elif pedido.estado == 'cancelado' %}bg-red-500/30 text-red-300
+                        {% endif %}">
+                        {{ pedido.get_estado_display }}
+                    </span>
+                </div>
+            </div>
+            {% if pedido.especificaciones %}
+            <p class="text-white/40 text-sm mt-2">Especificaciones: {{ pedido.especificaciones }}</p>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="glass-card rounded-2xl p-12 text-center text-white/40">
+            <span class="material-symbols-outlined text-4xl">receipt_long</span>
+            <p>No has realizado ningún pedido aún.</p>
+            <a href="{% url 'sublimacion:productos_cliente' %}" class="mt-3 inline-block btn-purple px-4 py-2 rounded-xl text-white text-sm">Ver productos</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

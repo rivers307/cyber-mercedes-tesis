@@ -17,7 +17,6 @@ urlpatterns = [
     path('reportes/exportar/sublimacion/excel/', views.exportar_sublimacion_excel, name='exportar_sublimacion_excel'),
     path('reportes/exportar/inventario/excel/', views.exportar_inventario_excel, name='exportar_inventario_excel'),
     path('reportes/exportar/auditoria-ventas/excel/', views.exportar_auditoria_ventas_excel, name='exportar_auditoria_ventas_excel'),
-    # ✅ Eliminada la línea que causaba el error: 'exportar_cierre_caja_excel'
     
     # Registro de ventas
     path('reportes/registrar-venta/', views.registrar_venta_page, name='registrar_venta_page'),

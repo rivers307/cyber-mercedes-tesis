@@ -274,6 +274,9 @@
                 <span class="font-medium">Dashboard</span>
             </a>
             
+            <!-- ============================================================ -->
+            <!-- ===== MENÚ PARA ADMIN Y EMPLEADO ===== -->
+            <!-- ============================================================ -->
             {% if user.rol == 'admin' or user.rol == 'empleado' %}
                 
                 <!-- Control de PCs -->
@@ -282,8 +285,8 @@
                     <span class="font-medium">Control de PCs</span>
                 </a>
                 
-                <!-- Sublimación -->
-                <a href="{% url 'sublimacion_dashboard' %}" class="flex items-center gap-3 px-4 py-3 {% if 'sublimacion' in request.path %}active-nav-item{% endif %} rounded-xl text-white/60 hover:text-white transition-all group">
+                <!-- Sublimación (CORREGIDO: usa namespace y nombre correcto) -->
+                <a href="{% url 'sublimacion:dashboard_pedidos' %}" class="flex items-center gap-3 px-4 py-3 {% if 'sublimacion' in request.path %}active-nav-item{% endif %} rounded-xl text-white/60 hover:text-white transition-all group">
                     <span class="material-symbols-outlined text-xl">brush</span>
                     <span class="font-medium">Sublimación</span>
                 </a>
@@ -362,8 +365,8 @@
                                 <span class="material-symbols-outlined text-base">verified</span>
                                 Auditoría de Ventas
                             </a>
-                        <a href="{% url 'registrar_venta_page' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
-                                 <span class="material-symbols-outlined text-base">add_shopping_cart</span>
+                            <a href="{% url 'registrar_venta_page' %}" class="flex items-center gap-3 px-4 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group text-sm">
+                                <span class="material-symbols-outlined text-base">add_shopping_cart</span>
                                 Registrar Venta
                             </a>
                         {% endif %}
@@ -391,14 +394,43 @@
                     </a>
                 {% endif %}
             
+            <!-- ============================================================ -->
+            <!-- ===== MENÚ PARA CLIENTES ===== -->
+            <!-- ============================================================ -->
             {% else %}
                 <p class="px-4 text-[10px] uppercase font-bold text-white/30 tracking-[0.2em] mt-4 mb-2">Mis Opciones</p>
                 
+                <!-- Panel del Cliente -->
                 <a href="{% url 'panel_cliente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
                     <span class="material-symbols-outlined text-xl">dashboard</span>
                     <span class="font-medium">Mi Panel</span>
                 </a>
                 
+                <!-- Productos a la venta -->
+                <a href="{% url 'sublimacion:productos_cliente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                    <span class="material-symbols-outlined text-xl">shopping_bag</span>
+                    <span class="font-medium">Productos</span>
+                </a>
+                
+                <!-- Realizar Pedido -->
+                <a href="{% url 'sublimacion:crear_pedido_cliente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                    <span class="material-symbols-outlined text-xl">add_shopping_cart</span>
+                    <span class="font-medium">Realizar Pedido</span>
+                </a>
+                
+                <!-- Mis Pedidos -->
+                <a href="{% url 'sublimacion:mis_pedidos' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                    <span class="material-symbols-outlined text-xl">receipt_long</span>
+                    <span class="font-medium">Mis Pedidos</span>
+                </a>
+                
+                <!-- Tabulador de Precios (NUEVO) -->
+                <a href="{% url 'sublimacion:tabulador_precios_cliente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
+                    <span class="material-symbols-outlined text-xl">price_check</span>
+                    <span class="font-medium">Tabulador de Precios</span>
+                </a>
+                
+                <!-- Perfil Cliente -->
                 <a href="{% url 'perfil_cliente' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all group">
                     <span class="material-symbols-outlined text-xl">person</span>
                     <span class="font-medium">Mi Perfil</span>

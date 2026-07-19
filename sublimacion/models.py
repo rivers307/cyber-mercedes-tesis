@@ -31,13 +31,13 @@ class Producto(models.Model):
     stock_minimo = models.IntegerField(default=5, help_text="Stock mínimo para alerta")
     
     def precio_bs(self):
-        """Calcula el precio en Bs según la tasa de cambio actual"""
+        """Calcula el precio en Bs según la tasa de cambio actual (la más reciente)"""
         from reportes.models import TasaCambio
-        # ✅ Convertir a Decimal por si acaso es una cadena
         precio_usd = Decimal(str(self.precio_usd))
-        tasa = TasaCambio.objects.first()
-        if tasa:
-            return precio_usd * tasa.tasa
+        # Obtener la tasa más reciente (ordenada por fecha descendente)
+        tasa_obj = TasaCambio.objects.order_by('-fecha').first()
+        if tasa_obj:
+            return precio_usd * tasa_obj.tasa
         # Fallback si no hay tasa registrada
         return precio_usd * Decimal('60')
     
@@ -97,8 +97,11 @@ class Pedido(models.Model):
         help_text="Tasa de cambio Bs/USD usada al momento del pedido"
     )
     
-    # Usuario que registró
-    registrado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    # Usuario que registró (puede ser admin, empleado o el mismo cliente)
+    registrado_por = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='pedidos_registrados')
+    
+    # Cliente autenticado (si el pedido lo hizo un usuario logueado)
+    cliente = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='pedidos')
     
     archivo_diseno = models.FileField(upload_to='disenos/', blank=True, null=True, verbose_name="Archivo de diseño")
     notas_produccion = models.TextField(blank=True, null=True, help_text="Parámetros de producción: temperatura, tiempo, presión, etc.")

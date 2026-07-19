@@ -42,17 +42,21 @@ urlpatterns = [
     # ============================================================
     
     # 1. App de estaciones (control de PCs)
-    path('', include('estaciones.urls')),  # <- Mueve esto ANTES de reportes
+    path('estaciones/', include('estaciones.urls')),  # <-- CORREGIDO: con prefijo
     
     # 2. App de usuarios
     path('', include('usuarios.urls')),
     
-    # 3. App de reportes (tiene rutas como /reportes/ y /estaciones/ que no deben interferir)
+    # 3. App de reportes
     path('', include('reportes.urls')),
     
-    # 4. Otras apps
-    path('', include('sublimacion.urls')),
+    # 4. App de sublimación (CON NAMESPACE)
+    path('', include(('sublimacion.urls', 'sublimacion'))),  # <-- NUEVO: namespace registrado
+    
+    # 5. App de inventario
     path('', include('inventario.urls')),
+    
+    # 6. App de asistente
     path('asistente/', include('asistente.urls')),
 ]
 

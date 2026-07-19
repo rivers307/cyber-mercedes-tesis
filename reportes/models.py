@@ -41,23 +41,38 @@ class Ingreso(models.Model):
         ordering = ['-fecha']
 
 
-# ========== NUEVOS MODELOS PARA TABULADOR DE PRECIOS ==========
+# ========== TASA DE CAMBIO ==========
 
 class TasaCambio(models.Model):
     """Registro de la tasa de cambio del día"""
-    fecha = models.DateField(auto_now_add=True, unique=True)
+    fecha = models.DateTimeField(auto_now_add=True, help_text="Fecha y hora de registro")
     tasa = models.DecimalField(max_digits=10, decimal_places=2, help_text="Tasa de cambio Bs/USD")
     actualizada_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True)
     fuente = models.CharField(max_length=50, default='Manual', help_text="API o Manual")
     
     def __str__(self):
-        return f"{self.fecha.strftime('%d/%m/%Y')} - Bs {self.tasa:.2f} / USD"
+        return f"{self.fecha.strftime('%d/%m/%Y %H:%M')} - Bs {self.tasa:.2f} / USD"
     
     class Meta:
         verbose_name = "Tasa de Cambio"
         verbose_name_plural = "Tasas de Cambio"
-        ordering = ['-fecha']
+        ordering = ['-fecha']  # La más reciente primero
 
+    @classmethod
+    def ultima_tasa(cls):
+        """Obtiene la tasa más reciente registrada"""
+        obj = cls.objects.order_by('-fecha').first()
+        return obj.tasa if obj else Decimal('60')
+    
+    @classmethod
+    def ultima_tasa(cls):
+        """Devuelve la tasa más reciente, actualizándola si es necesario."""
+        from .services import obtener_tasa_actual
+        tasa_obj = obtener_tasa_actual()
+        return tasa_obj.tasa
+
+
+# ========== PRECIOS DE SERVICIOS (opcional) ==========
 
 class PrecioServicio(models.Model):
     """Precios de servicios en USD (se convierten a Bs con la tasa del día)"""
@@ -88,18 +103,10 @@ class PrecioServicio(models.Model):
     def precio_bs(self, tasa=None):
         """Calcula el precio en Bs según la tasa actual"""
         if tasa is None:
-            tasa = TasaCambio.objects.first()
-            if tasa:
-                tasa = tasa.tasa
-            else:
-                return 0
+            tasa = TasaCambio.ultima_tasa()
         return self.precio_usd * tasa
     
     class Meta:
         verbose_name = "Precio de Servicio"
         verbose_name_plural = "Precios de Servicios"
         ordering = ['servicio']
-
-
-# CORRECCIÓN: Se sacó la clase del bloque de 'Ingreso' desindentándola al nivel principal
-# Datos afectados (opcional)

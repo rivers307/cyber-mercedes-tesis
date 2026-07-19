@@ -34,8 +34,8 @@
 
     <!-- Formulario de venta -->
     <div class="glass-card rounded-2xl p-8">
-        <!-- ✅ CORREGIDO: action apunta a 'procesar_venta' -->
-        <form id="formVenta" method="POST" action="{% url 'procesar_venta' %}">
+        <!-- ✅ CORREGIDO: action apunta a 'registrar_venta' (el nombre correcto) -->
+        <form id="formVenta" method="POST" action="{% url 'registrar_venta' %}">
             {% csrf_token %}
             
             <!-- Lista de items -->

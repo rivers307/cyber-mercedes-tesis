@@ -11,10 +11,11 @@ import os
 from django.conf import settings
 
 from estaciones.models import Estacion, SesionPC
-from sublimacion.models import Pedido, Producto
+from sublimacion.models import Pedido, Producto  # <--- IMPORTACIÓN CORRECTA
 from inventario.models import MovimientoInventario, Insumo, Auditoria, ConciliacionInventario
 from usuarios.decorators import empleado_required, admin_required
 from .models import Ingreso, TasaCambio, PrecioServicio
+# NOTA: HistorialEstado no se usa en este archivo, por eso no se importa
 
 
 # ==================== DASHBOARD PRINCIPAL ====================
@@ -485,7 +486,6 @@ def exportar_estaciones_excel(request):
     from django.http import HttpResponse
     from decimal import Decimal
     
-    # Obtener tasa de cambio actual
     tasa = TasaCambio.objects.first()
     tasa_valor = float(tasa.tasa) if tasa else 60.0
     
@@ -493,7 +493,6 @@ def exportar_estaciones_excel(request):
     ws = wb.active
     ws.title = "Reporte de Estaciones"
     
-    # Logo
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_cyber_comunal.png')
     try:
         if os.path.exists(logo_path):

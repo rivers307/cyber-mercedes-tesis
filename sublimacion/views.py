@@ -46,7 +46,7 @@ def dashboard_pedidos(request):
     })
 
 
-# ========== CREAR PEDIDO ==========
+# ========== CREAR PEDIDO (EMPLEADO) ==========
 @empleado_required
 @registrar_auditoria(
     accion='crear',
@@ -67,11 +67,8 @@ def crear_pedido(request):
             
             # Calcular precio total usando precio_usd y tasa actual
             from reportes.models import TasaCambio
-            tasa = TasaCambio.objects.first()
-            if tasa:
-                tasa_valor = tasa.tasa
-            else:
-                tasa_valor = Decimal('60')
+            tasa_obj = TasaCambio.objects.order_by('-fecha').first()
+            tasa_valor = tasa_obj.tasa if tasa_obj else Decimal('60')
             
             pedido.precio_usd_unitario = producto.precio_usd
             pedido.tasa_usada = tasa_valor
@@ -380,3 +377,96 @@ def guardar_notas_produccion(request, id):
         pedido.save()
         messages.success(request, "Notas de producción guardadas correctamente.")
     return redirect('detalle_pedido', id=pedido.id)
+
+
+# ============================================================
+# ===== VISTAS PARA CLIENTES =====
+# ============================================================
+
+@login_required
+def productos_cliente(request):
+    """Lista de productos disponibles para clientes"""
+    from reportes.models import TasaCambio
+    productos = Producto.objects.filter(stock__gt=0).order_by('tipo', 'nombre')
+    tasa_obj = TasaCambio.objects.order_by('-fecha').first()
+    return render(request, 'sublimacion/productos_cliente.html', {
+        'productos': productos,
+        'tasa': tasa_obj.tasa if tasa_obj else 60,
+    })
+
+@login_required
+def crear_pedido_cliente(request):
+    from reportes.models import TasaCambio
+    
+    # Obtener la tasa más reciente
+    tasa_obj = TasaCambio.objects.order_by('-fecha').first()
+    tasa_actual = tasa_obj.tasa if tasa_obj else Decimal('60')
+    
+    if request.method == 'POST':
+        producto_id = request.POST.get('producto_id')
+        cantidad = int(request.POST.get('cantidad', 1))
+        especificaciones = request.POST.get('especificaciones', '')
+        direccion_cliente = request.POST.get('direccion_cliente', '')
+        telefono_cliente = request.POST.get('telefono_cliente', '')
+        
+        producto = get_object_or_404(Producto, id=producto_id)
+        if producto.stock < cantidad:
+            messages.error(request, 'No hay suficiente stock disponible.')
+            return redirect('sublimacion:productos_cliente')
+        
+        # Calcular precio total en Bs según tasa actual
+        precio_bs = producto.precio_usd * tasa_actual
+        precio_total = precio_bs * cantidad
+        
+        from django.db import transaction
+        with transaction.atomic():
+            pedido = Pedido.objects.create(
+                producto=producto,
+                cantidad=cantidad,
+                especificaciones=especificaciones,
+                nombre_cliente=request.user.get_full_name() or request.user.username,
+                telefono_cliente=telefono_cliente,
+                direccion_cliente=direccion_cliente,
+                precio_total=precio_total,
+                precio_usd_unitario=producto.precio_usd,
+                tasa_usada=tasa_actual,
+                registrado_por=request.user,
+                cliente=request.user,
+                estado='pendiente'
+            )
+            producto.stock -= cantidad
+            producto.save()
+            
+            messages.success(request, f'✅ Pedido #{pedido.id} creado exitosamente. Espera confirmación.')
+            return redirect('sublimacion:mis_pedidos')
+    
+    # GET: mostrar formulario
+    producto_id = request.GET.get('producto_id')
+    producto = None
+    if producto_id:
+        producto = get_object_or_404(Producto, id=producto_id)
+    productos = Producto.objects.filter(stock__gt=0).order_by('tipo', 'nombre')
+    
+    return render(request, 'sublimacion/crear_pedido_cliente.html', {
+        'producto': producto,
+        'productos': productos,
+        'tasa': tasa_actual,
+        'tasa_obj': tasa_obj,
+    })
+
+@login_required
+def mis_pedidos(request):
+    """Lista de pedidos del cliente autenticado"""
+    pedidos = Pedido.objects.filter(cliente=request.user).order_by('-fecha_pedido')
+    return render(request, 'sublimacion/mis_pedidos.html', {'pedidos': pedidos})
+
+@login_required
+def tabulador_precios_cliente(request):
+    """Tabulador de precios para clientes con tasa de cambio actual"""
+    from reportes.models import TasaCambio
+    productos = Producto.objects.filter(stock__gt=0).order_by('tipo', 'nombre')
+    tasa_obj = TasaCambio.objects.order_by('-fecha').first()
+    return render(request, 'sublimacion/tabulador_precios_cliente.html', {
+        'productos': productos,
+        'tasa': tasa_obj.tasa if tasa_obj else 60,
+    })

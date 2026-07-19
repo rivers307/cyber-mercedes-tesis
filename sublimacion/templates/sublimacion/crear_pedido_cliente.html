@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Realizar Pedido - Cyber Comunal{% endblock %}
+{% block content %}
+<div class="p-8 max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-white">Realizar Pedido</h2>
+            <p class="text-white/60 text-sm">Selecciona un producto y cantidad para tu pedido</p>
+        </div>
+        <div class="text-right">
+            <span class="text-white/40 text-xs">Tasa de cambio BCV</span>
+            <p class="text-white font-bold text-lg">Bs {{ tasa|floatformat:2 }} / $</p>
+            {% if tasa_obj and tasa_obj.fecha %}
+                <p class="text-white/30 text-[10px]">Actualizado: {{ tasa_obj.fecha|date:"d/m/Y H:i" }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="glass-card rounded-2xl p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Producto -->
+            <div>
+                <label class="block text-white/60 text-sm font-medium mb-1">Producto *</label>
+                {% if producto %}
+                    <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                    <div class="bg-white/5 p-4 rounded-xl">
+                        <p class="text-white font-bold">{{ producto.nombre }}</p>
+                        <p class="text-white/60 text-sm">{{ producto.tipo }}</p>
+                        <div class="flex gap-4 mt-2">
+                            <span class="text-white/80">Precio USD: <strong class="text-purple-400">${{ producto.precio_usd }}</strong></span>
+                            <span class="text-white/80">Precio Bs: <strong class="text-purple-400">Bs {{ producto.precio_bs|floatformat:2 }}</strong></span>
+                        </div>
+                        <p class="text-white/40 text-sm">Stock disponible: {{ producto.stock }}</p>
+                    </div>
+                {% else %}
+                    <select name="producto_id" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:border-purple-500 transition-colors" required>
+                        <option value="">Seleccionar producto...</option>
+                        {% for p in productos %}
+                            <option value="{{ p.id }}" data-precio-usd="{{ p.precio_usd }}" data-precio-bs="{{ p.precio_bs|floatformat:2 }}">
+                                {{ p.nombre }} - {{ p.tipo }} (Stock: {{ p.stock }}) - ${{ p.precio_usd }} / Bs {{ p.precio_bs|floatformat:2 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
+            
+            <!-- Cantidad -->
+            <div>
+                <label class="block text-white/60 text-sm font-medium mb-1">Cantidad *</label>
+                <input type="number" name="cantidad" min="1" max="{% if producto %}{{ producto.stock }}{% else %}999{% endif %}" value="1" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:border-purple-500 transition-colors" required>
+                <p class="text-white/30 text-xs mt-1">Stock disponible: {% if producto %}{{ producto.stock }}{% else %}Selecciona un producto{% endif %}</p>
+            </div>
+            
+            <!-- Especificaciones -->
+            <div>
+                <label class="block text-white/60 text-sm font-medium mb-1">Especificaciones (color, talla, diseño)</label>
+                <textarea name="especificaciones" rows="3" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:border-purple-500 transition-colors" placeholder="Ej: Taza blanca, estampado de logo, talla M..."></textarea>
+            </div>
+            
+            <!-- Teléfono -->
+            <div>
+                <label class="block text-white/60 text-sm font-medium mb-1">Teléfono de contacto</label>
+                <input type="text" name="telefono_cliente" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:border-purple-500 transition-colors" placeholder="0412-1234567">
+            </div>
+            
+            <!-- Dirección -->
+            <div>
+                <label class="block text-white/60 text-sm font-medium mb-1">Dirección (opcional)</label>
+                <textarea name="direccion_cliente" rows="2" class="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white focus:border-purple-500 transition-colors" placeholder="Dirección de entrega"></textarea>
+            </div>
+            
+            <!-- Resumen del pedido -->
+            <div id="resumen-pedido" class="bg-white/5 p-4 rounded-xl mt-4 hidden">
+                <h4 class="text-white font-bold text-sm">Resumen del pedido</h4>
+                <div class="flex justify-between mt-2 text-sm">
+                    <span class="text-white/60">Precio unitario (USD):</span>
+                    <span class="text-white" id="precio-usd-unidad">$0.00</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/60">Precio unitario (Bs):</span>
+                    <span class="text-white" id="precio-bs-unidad">Bs 0.00</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/60">Cantidad:</span>
+                    <span class="text-white" id="cantidad-resumen">0</span>
+                </div>
+                <div class="flex justify-between text-lg font-bold border-t border-white/10 pt-2 mt-2">
+                    <span class="text-white/60">Total (Bs):</span>
+                    <span class="text-purple-400" id="total-bs-resumen">Bs 0.00</span>
+                </div>
+            </div>
+            
+            <!-- Botones -->
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold hover:opacity-90 transition-all shadow-lg shadow-purple-500/30">
+                    Enviar Pedido
+                </button>
+                <a href="{% url 'sublimacion:productos_cliente' %}" class="flex-1 py-3 bg-white/5 border border-white/10 text-white/60 rounded-xl font-bold hover:bg-white/10 transition-all text-center">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectProducto = document.querySelector('select[name="producto_id"]');
+        const inputCantidad = document.querySelector('input[name="cantidad"]');
+        const resumenDiv = document.getElementById('resumen-pedido');
+        const precioUsdUnidad = document.getElementById('precio-usd-unidad');
+        const precioBsUnidad = document.getElementById('precio-bs-unidad');
+        const cantidadResumen = document.getElementById('cantidad-resumen');
+        const totalBsResumen = document.getElementById('total-bs-resumen');
+        const tasa = {{ tasa|floatformat:2 }};
+
+        function actualizarResumen() {
+            const select = document.querySelector('select[name="producto_id"]');
+            const selectedOption = select ? select.options[select.selectedIndex] : null;
+            const productoId = select ? select.value : null;
+            const cantidad = parseInt(inputCantidad.value) || 0;
+
+            if (productoId && selectedOption && cantidad > 0) {
+                const precioUsd = parseFloat(selectedOption.dataset.precioUsd) || 0;
+                const precioBs = parseFloat(selectedOption.dataset.precioBs) || (precioUsd * tasa);
+                const totalBs = precioBs * cantidad;
+
+                precioUsdUnidad.textContent = `$${precioUsd.toFixed(2)}`;
+                precioBsUnidad.textContent = `Bs ${precioBs.toFixed(2)}`;
+                cantidadResumen.textContent = cantidad;
+                totalBsResumen.textContent = `Bs ${totalBs.toFixed(2)}`;
+                resumenDiv.classList.remove('hidden');
+            } else {
+                resumenDiv.classList.add('hidden');
+            }
+        }
+
+        if (selectProducto) {
+            selectProducto.addEventListener('change', actualizarResumen);
+        }
+        inputCantidad.addEventListener('input', actualizarResumen);
+
+        // Si hay un producto pre-seleccionado (por GET), actualizar
+        actualizarResumen();
+    });
+</script>
+{% endblock %}
